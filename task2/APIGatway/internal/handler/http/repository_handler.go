@@ -19,7 +19,7 @@ func NewHandler(collectorClient *grpc.CollectorClient) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/api/repositories", h.GetRepository)
+	mux.HandleFunc("/api/repositories/info", h.GetRepository)
 }
 
 func (h *Handler) GetRepository(w http.ResponseWriter, r *http.Request) {
