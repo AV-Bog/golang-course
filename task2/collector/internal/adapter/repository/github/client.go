@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
+	_ "strings"
 	"time"
 
 	"collector/internal/domain"
@@ -91,7 +93,7 @@ func (c *Client) handleErrorResponse(statusCode int, body []byte, owner, repo st
 		return nil, fmt.Errorf("%w: %s/%s", ErrRepoNotFound, owner, repo)
 
 	case http.StatusForbidden:
-		if contains(string(body), "rate limit") {
+		if strings.Contains(string(body), "rate limit") {
 			return nil, ErrRateLimit
 		}
 		return nil, fmt.Errorf("access forbidden to %s/%s", owner, repo)
@@ -129,18 +131,4 @@ type GitHubResponse struct {
 	Language        string `json:"language"`
 	HTMLURL         string `json:"html_url"`
 	DefaultBranch   string `json:"default_branch"`
-}
-
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr ||
-		(len(s) > len(substr) && findSubstring(s, substr)))
-}
-
-func findSubstring(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
 }

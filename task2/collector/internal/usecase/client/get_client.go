@@ -1,16 +1,13 @@
 package client
 
 import (
+	"collector/internal/adapter/repository/github"
 	"collector/internal/domain"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"net/url"
 	"strings"
-	"time"
 )
 
 var (
@@ -19,12 +16,15 @@ var (
 )
 
 type UseCase struct {
-	githubToken string
+	githubClient *github.Client
 }
 
 func NewUseCase(githubToken string) *UseCase {
+	config := github.Config{
+		AuthToken: githubToken,
+	}
 	return &UseCase{
-		githubToken: githubToken,
+		githubClient: github.NewClient(config),
 	}
 }
 
@@ -34,65 +34,14 @@ func (uc *UseCase) Execute(ctx context.Context, repoURL string) (*domain.Reposit
 		return nil, fmt.Errorf("%w: %v", ErrInvalidURL, err)
 	}
 
-	return uc.fetchFromGitHub(owner, name)
-}
-
-func (uc *UseCase) fetchFromGitHub(owner, repo string) (*domain.Repository, error) {
-	url := fmt.Sprintf("https://api.github.com/repos/%s/%s", owner, repo)
-
-	req, err := http.NewRequest("GET", url, nil)
+	repo, err := uc.githubClient.GetRepository(owner, name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	req.Header.Set("User-Agent", "golang-course-task2/1.0")
-
-	if uc.githubToken != "" {
-		req.Header.Set("Authorization", "token "+uc.githubToken)
-	}
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("HTTP request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		if resp.StatusCode == http.StatusNotFound {
+		if errors.Is(err, github.ErrRepoNotFound) {
 			return nil, ErrRepoNotFound
 		}
-		return nil, fmt.Errorf("GitHub API error: status %d", resp.StatusCode)
+		return nil, err
 	}
-
-	var githubRepo struct {
-		FullName        string `json:"full_name"`
-		Description     string `json:"description"`
-		StargazersCount int    `json:"stargazers_count"`
-		ForksCount      int    `json:"forks_count"`
-		CreatedAt       string `json:"created_at"`
-		Language        string `json:"language"`
-	}
-
-	if err := json.Unmarshal(body, &githubRepo); err != nil {
-		return nil, fmt.Errorf("failed to parse JSON: %w", err)
-	}
-
-	createdAt, _ := time.Parse(time.RFC3339, githubRepo.CreatedAt)
-
-	return &domain.Repository{
-		FullName:    githubRepo.FullName,
-		Description: githubRepo.Description,
-		Stars:       githubRepo.StargazersCount,
-		Forks:       githubRepo.ForksCount,
-		CreatedAt:   createdAt,
-		Language:    githubRepo.Language,
-	}, nil
+	return repo, nil
 }
 
 func parseGitHubURL(repoURL string) (owner, repo string, err error) {
@@ -114,7 +63,6 @@ func parseGitHubURL(repoURL string) (owner, repo string, err error) {
 
 	path := strings.Trim(parsedURL.Path, "/")
 	parts := strings.Split(path, "/")
-
 	if len(parts) < 2 {
 		return "", "", fmt.Errorf("invalid format: expected /owner/repo")
 	}
