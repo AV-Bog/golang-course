@@ -9,8 +9,6 @@
 *.iws
 *.ipr
 .vscode/
-*.pb.go
-*_grpc.pb.go
 go.imports.xml
 modules.xml
 vcs.xml
