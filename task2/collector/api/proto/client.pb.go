@@ -4,7 +4,7 @@
 // 	protoc        v7.34.1
 // source: api/proto/client.proto
 
-package pb
+package proto
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -21,7 +21,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Эти коды маппятся в gRPC status codes в handler слое
 type ErrorCode int32
 
 const (
@@ -88,8 +87,6 @@ func (ErrorCode) EnumDescriptor() ([]byte, []int) {
 	return file_api_proto_client_proto_rawDescGZIP(), []int{0}
 }
 
-// Запрос: получить репозиторий по полной URL-ссылке
-// Пример: "https://github.com/torvalds/linux"
 type GetRepositoryByURLRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Url           string                 `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
@@ -134,14 +131,11 @@ func (x *GetRepositoryByURLRequest) GetUrl() string {
 	return ""
 }
 
-// Ответ: содержит данные репозитория или ошибку
 type GetRepositoryResponse struct {
-	state      protoimpl.MessageState `protogen:"open.v1"`
-	Repository *Repository            `protobuf:"bytes,1,opt,name=repository,proto3" json:"repository,omitempty"`
-	// Код ошибки (если произошла ошибка)
-	// 0 = нет ошибки, >0 = код ошибки (см. ErrorCodes)
-	ErrorCode     int32  `protobuf:"varint,2,opt,name=error_code,json=errorCode,proto3" json:"error_code,omitempty"`
-	ErrorMessage  string `protobuf:"bytes,3,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Repository    *Repository            `protobuf:"bytes,1,opt,name=repository,proto3" json:"repository,omitempty"`
+	ErrorCode     int32                  `protobuf:"varint,2,opt,name=error_code,json=errorCode,proto3" json:"error_code,omitempty"`
+	ErrorMessage  string                 `protobuf:"bytes,3,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -197,7 +191,6 @@ func (x *GetRepositoryResponse) GetErrorMessage() string {
 	return ""
 }
 
-// Сущность репозитория (соответствует Repository из ДЗ №1)
 type Repository struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FullName      string                 `protobuf:"bytes,1,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"`
@@ -315,7 +308,7 @@ const file_api_proto_client_proto_rawDesc = "" +
 	"\x13ERROR_CODE_INTERNAL\x10\xf4\x03\x12\x1e\n" +
 	"\x19ERROR_CODE_UPSTREAM_ERROR\x10\xf6\x032p\n" +
 	"\x10CollectorService\x12\\\n" +
-	"\x12GetRepositoryByURL\x12$.collector.GetRepositoryByURLRequest\x1a .collector.GetRepositoryResponseB\x13Z\x11сollector/api/pbb\x06proto3"
+	"\x12GetRepositoryByURL\x12$.collector.GetRepositoryByURLRequest\x1a .collector.GetRepositoryResponseB\rZ\v./api/protob\x06proto3"
 
 var (
 	file_api_proto_client_proto_rawDescOnce sync.Once

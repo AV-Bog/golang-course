@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package collector;
 
-option go_package = "сollector/api/pb";
+option go_package = "./api/proto";
 
 service CollectorService {
   rpc GetRepositoryByURL(GetRepositoryByURLRequest) returns (GetRepositoryResponse);
