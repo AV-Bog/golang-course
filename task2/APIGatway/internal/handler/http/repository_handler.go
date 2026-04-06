@@ -4,6 +4,7 @@ import (
 	"APIGatway/internal/client/grpc"
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 )
@@ -20,6 +21,13 @@ func NewHandler(collectorClient *grpc.CollectorClient) *Handler {
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/repositories/info", h.GetRepository)
+	mux.HandleFunc("/ping", h.Ping)
+}
+
+func (h *Handler) Ping(w http.ResponseWriter, r *http.Request) {
+	log.Println("Ping endpoint called")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("pong"))
 }
 
 func (h *Handler) GetRepository(w http.ResponseWriter, r *http.Request) {

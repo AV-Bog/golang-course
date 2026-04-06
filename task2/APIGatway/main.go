@@ -20,6 +20,9 @@ func main() {
 		collectorAddr = "localhost:50051"
 	}
 
+	log.Printf("Starting API Gateway on port %s", httpPort)
+	log.Printf("Connecting to collector at %s", collectorAddr)
+
 	collectorClient, err := grpc.NewCollectorClient(collectorAddr)
 	if err != nil {
 		log.Fatalf("Failed to create collector client: %v", err)
@@ -27,12 +30,11 @@ func main() {
 	defer collectorClient.Close()
 
 	handler := http_handler.NewHandler(collectorClient)
-
 	mux := http.NewServeMux()
 	handler.RegisterRoutes(mux)
 
 	log.Printf("API Gateway started on port %s", httpPort)
-	log.Printf("Try: http://localhost:%s/api/repositories?url=https://github.com/torvalds/linux", httpPort)
+	log.Printf("Try: http://localhost:%s/api/repositories/info?url=https://github.com/torvalds/linux", httpPort)
 
 	if err := http.ListenAndServe(":"+httpPort, mux); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
