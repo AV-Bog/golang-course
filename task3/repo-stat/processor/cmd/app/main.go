@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"repo-stat/platform/grpcserver"
 	"repo-stat/platform/logger"
@@ -13,7 +14,7 @@ import (
 	"repo-stat/processor/internal/adapter/collector"
 	"repo-stat/processor/internal/controller/grpc"
 	"repo-stat/processor/internal/usecase"
-	processorpb "repo-stat/proto/gen/go/processor/v1"
+	processorpb "repo-stat/proto/proto/processor"
 )
 
 func run(ctx context.Context) error {
@@ -22,8 +23,8 @@ func run(ctx context.Context) error {
 	flag.Parse()
 
 	cfg := config.MustLoad(configPath)
-
 	log := logger.MustMakeLogger(cfg.Logger.LogLevel)
+
 	log.Info("starting processor server...")
 
 	collectorClient, err := collector.NewClient(cfg.Services.Collector, log)
@@ -33,7 +34,6 @@ func run(ctx context.Context) error {
 	defer collectorClient.Close()
 
 	forwardUC := usecase.NewForwardRepository(collectorClient)
-
 	handler := grpc.NewHandler(log, forwardUC)
 
 	srv, err := grpcserver.New(cfg.GRPC.Address)
@@ -52,11 +52,11 @@ func run(ctx context.Context) error {
 
 func main() {
 	ctx := context.Background()
-	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
 	if err := run(ctx); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		cancel()
 		os.Exit(1)
 	}
-	cancel()
 }

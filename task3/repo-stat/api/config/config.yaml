@@ -3,11 +3,15 @@ app:
 
 http:
   address: "localhost:8080"
-  timeout: "5s"
+  timeout: "30s"
 
 logger:
   log_level: "DEBUG"
 
 services:
-  processor: "localhost:50051"
-  subscriber: "localhost:8081"
+  processor:
+    address: "localhost:50051"
+    protocol: "grpc"
+  subscriber:
+    address: "localhost:8081"
+    protocol: "http"

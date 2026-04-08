@@ -6,7 +6,8 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	processorpb "repo-stat/proto/gen/go/processor/v1"
+
+	processorpb "repo-stat/proto/proto/processor"
 )
 
 type Client struct {

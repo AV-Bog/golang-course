@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"repo-stat/collector/config"
 	"repo-stat/collector/internal/controller/grpc"
 	"repo-stat/collector/internal/usecase"
 	"repo-stat/platform/grpcserver"
 	"repo-stat/platform/logger"
-	collectorpb "repo-stat/proto/gen/go/collector/v1"
+	collectorpb "repo-stat/proto/proto/collector"
 )
 
 func run(ctx context.Context) error {
@@ -21,12 +22,11 @@ func run(ctx context.Context) error {
 	flag.Parse()
 
 	cfg := config.MustLoad(configPath)
-
 	log := logger.MustMakeLogger(cfg.Logger.LogLevel)
+
 	log.Info("starting collector server...")
 
 	getRepoUC := usecase.NewGetRepository(cfg.GitHub.Token)
-
 	handler := grpc.NewHandler(log, getRepoUC)
 
 	srv, err := grpcserver.New(cfg.GRPC.Address)
@@ -45,11 +45,11 @@ func run(ctx context.Context) error {
 
 func main() {
 	ctx := context.Background()
-	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
 	if err := run(ctx); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		cancel()
 		os.Exit(1)
 	}
-	cancel()
 }

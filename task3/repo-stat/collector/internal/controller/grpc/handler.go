@@ -2,12 +2,14 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"repo-stat/collector/internal/usecase"
-	collectorpb "repo-stat/proto/gen/go/collector/v1"
+
+	_ "repo-stat/collector/internal/usecase"
+	collectorpb "repo-stat/proto/proto/collector"
 )
 
 type Server struct {
@@ -24,10 +26,9 @@ func NewHandler(log *slog.Logger, getRepositoryUC *usecase.GetRepository) *Serve
 }
 
 func (s *Server) GetRepository(ctx context.Context, req *collectorpb.GetRepositoryRequest) (*collectorpb.GetRepositoryResponse, error) {
-	// Ваша реализация из Task2
 	repo, err := s.getRepositoryUC.Execute(ctx, req.Url)
 	if err != nil {
-		return s.mapError(err)
+		return nil, s.mapError(err)
 	}
 
 	return &collectorpb.GetRepositoryResponse{
@@ -39,30 +40,20 @@ func (s *Server) GetRepository(ctx context.Context, req *collectorpb.GetReposito
 			CreatedAt:   repo.CreatedAt.Format("2006-01-02T15:04:05Z"),
 			Language:    repo.Language,
 		},
-		ErrorCode:    0,
-		ErrorMessage: "",
 	}, nil
 }
 
-func (s *Server) mapError(err error) (*collectorpb.GetRepositoryResponse, error) {
-	// Ваша реализация маппинга ошибок из Task2
+func (s *Server) mapError(err error) error {
 	var code codes.Code
-	var message string
 
 	switch {
-	case err == usecase.ErrInvalidURL:
+	case errors.Is(err, usecase.ErrInvalidURL):
 		code = codes.InvalidArgument
-		message = "Invalid repository URL"
-	case err == usecase.ErrRepoNotFound:
+	case errors.Is(err, usecase.ErrRepoNotFound):
 		code = codes.NotFound
-		message = "Repository not found"
 	default:
 		code = codes.Internal
-		message = "Internal server error"
 	}
 
-	return &collectorpb.GetRepositoryResponse{
-		ErrorCode:    int32(code),
-		ErrorMessage: message,
-	}, status.Error(code, message)
+	return status.Error(code, err.Error())
 }

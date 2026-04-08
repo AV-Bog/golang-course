@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	collectorpb "repo-stat/proto/gen/go/collector/v1"
+	collectorpb "repo-stat/proto/proto/collector"
 )
 
 type CollectorClient interface {

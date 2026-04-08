@@ -1,13 +1,15 @@
-package client
+package usecase
 
 import (
-	"collector/internal/adapter/repository/github"
-	"collector/internal/domain"
 	"context"
 	"errors"
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
+
+	"repo-stat/collector/internal/adapter/github"
+	"repo-stat/collector/internal/domain"
 )
 
 var (
@@ -15,20 +17,21 @@ var (
 	ErrRepoNotFound = errors.New("repository not found")
 )
 
-type UseCase struct {
+type GetRepository struct {
 	githubClient *github.Client
 }
 
-func NewUseCase(githubToken string) *UseCase {
+func NewGetRepository(githubToken string) *GetRepository {
 	config := github.Config{
 		AuthToken: githubToken,
+		Timeout:   10 * time.Second,
 	}
-	return &UseCase{
+	return &GetRepository{
 		githubClient: github.NewClient(config),
 	}
 }
 
-func (uc *UseCase) Execute(ctx context.Context, repoURL string) (*domain.Repository, error) {
+func (uc *GetRepository) Execute(ctx context.Context, repoURL string) (*domain.Repository, error) {
 	owner, name, err := parseGitHubURL(repoURL)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrInvalidURL, err)
@@ -41,6 +44,7 @@ func (uc *UseCase) Execute(ctx context.Context, repoURL string) (*domain.Reposit
 		}
 		return nil, err
 	}
+
 	return repo, nil
 }
 
