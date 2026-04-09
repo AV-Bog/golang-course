@@ -2,11 +2,11 @@ app:
   app_name: "repo-stat-processor"
 
 grpc:
-  address: "localhost:50051"
+  address: ":50051"
   timeout: "10s"
 
 logger:
   log_level: "DEBUG"
-
+  
 services:
-  collector: "localhost:50052"
+  collector: "collector:50052"

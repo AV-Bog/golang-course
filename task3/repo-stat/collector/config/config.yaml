@@ -1,12 +1,9 @@
 app:
   app_name: "repo-stat-collector"
-
 grpc:
-  address: "localhost:50052"
+  address: ":50052"
   timeout: "10s"
-
 logger:
   log_level: "DEBUG"
-
 github:
   token: ""
