@@ -23,13 +23,13 @@ fix:
 
 protobuf:
 	PATH="$(GOBIN):$$PATH" protoc \
-		--go_out=. --go_opt=paths=source_relative \
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		proto/proto/collector/collector.proto
-	PATH="$(GOBIN):$$PATH" protoc \
-		--go_out=. --go_opt=paths=source_relative \
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		proto/proto/processor/processor.proto
+    		--go_out=. --go_opt=paths=source_relative \
+    		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    		proto/proto/collector/collector.proto
+    PATH="$(GOBIN):$$PATH" protoc \
+    	--go_out=. --go_opt=paths=source_relative \
+    	--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    	proto/proto/processor/processor.proto
 
 protolint:
 	$(PROTOLINT) .
@@ -49,12 +49,12 @@ tools:
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@$(PROTOC_GEN_GO_GRPC_VERSION)
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 
-build: protobuf
+build:
 	go build ./api/...
 	go build ./collector/...
 	go build ./processor/...
 
-test: protobuf
+test:
 	go test -race -coverprofile cover.out \
 		$(shell go list ./... | grep -E -v 'repo-stat/(proto)')
 	go tool cover -html=cover.out -o cover.html
