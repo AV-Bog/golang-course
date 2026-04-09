@@ -22,15 +22,16 @@ fix:
 	$(GOLANGCI_LINT) run --fix --timeout=2m -E gocritic -v ./tools
 
 protobuf:
-	PATH="$(GOBIN):$$PATH" protoc \
-    		--go_out=. --go_opt=paths=source_relative \
-    		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    		proto/proto/collector/collector.proto
-	PATH="$(GOBIN):$$PATH" protoc \
-    	--go_out=. --go_opt=paths=source_relative \
-    	--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-    	proto/proto/processor/processor.proto
-
+	export PATH="$(GOBIN):$$PATH" && \
+	protoc \
+		--go_out=. --go_opt=paths=source_relative \
+		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		proto/proto/collector/collector.proto
+	export PATH="$(GOBIN):$$PATH" && \
+	protoc \
+		--go_out=. --go_opt=paths=source_relative \
+		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		proto/proto/processor/processor.proto
 protolint:
 	$(PROTOLINT) .
 

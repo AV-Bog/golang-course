@@ -27,9 +27,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
 
-      - name: Generate protobuf
-        run: make protobuf
-
       - name: Build
         run: go build ./...
 
