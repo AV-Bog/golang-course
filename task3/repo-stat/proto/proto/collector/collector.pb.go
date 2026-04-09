@@ -233,7 +233,7 @@ const file_proto_proto_collector_collector_proto_rawDesc = "" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1a\n" +
 	"\blanguage\x18\x06 \x01(\tR\blanguage2l\n" +
 	"\x10CollectorService\x12X\n" +
-	"\rGetRepository\x12\".collector.v1.GetRepositoryRequest\x1a#.collector.v1.GetRepositoryResponseB1Z/repo-stat/proto/gen/go/collector/v1;collectorv1b\x06proto3"
+	"\rGetRepository\x12\".collector.v1.GetRepositoryRequest\x1a#.collector.v1.GetRepositoryResponseB-Z+repo-stat/proto/proto/collector;collectorv1b\x06proto3"
 
 var (
 	file_proto_proto_collector_collector_proto_rawDescOnce sync.Once

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package processor.v1;
 
-option go_package = "repo-stat/proto/gen/go/processor/v1;processorv1";
+option go_package = "repo-stat/proto/proto/processor;processorv1";
 
 service ProcessorService {
   rpc GetRepository(GetRepositoryRequest) returns (GetRepositoryResponse);

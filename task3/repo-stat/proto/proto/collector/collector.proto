@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package collector.v1;
 
-option go_package = "repo-stat/proto/gen/go/collector/v1;collector1";
+option go_package = "repo-stat/proto/proto/collector;collectorv1";
 
 service CollectorService {
   rpc GetRepository(GetRepositoryRequest) returns (GetRepositoryResponse);

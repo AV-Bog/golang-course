@@ -317,7 +317,7 @@ const file_proto_proto_processor_processor_proto_rawDesc = "" +
 	"\x06status\x18\x01 \x01(\tR\x06status2\xab\x01\n" +
 	"\x10ProcessorService\x12X\n" +
 	"\rGetRepository\x12\".processor.v1.GetRepositoryRequest\x1a#.processor.v1.GetRepositoryResponse\x12=\n" +
-	"\x04Ping\x12\x19.processor.v1.PingRequest\x1a\x1a.processor.v1.PingResponseB1Z/repo-stat/proto/gen/go/processor/v1;processorv1b\x06proto3"
+	"\x04Ping\x12\x19.processor.v1.PingRequest\x1a\x1a.processor.v1.PingResponseB-Z+repo-stat/proto/proto/processor;processorv1b\x06proto3"
 
 var (
 	file_proto_proto_processor_processor_proto_rawDescOnce sync.Once
