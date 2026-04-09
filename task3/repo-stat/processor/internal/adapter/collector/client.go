@@ -4,9 +4,10 @@ import (
 	"context"
 	"log/slog"
 
+	collectorpb "repo-stat/proto/proto/collector"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	collectorpb "repo-stat/proto/proto/collector"
 )
 
 type Client struct {

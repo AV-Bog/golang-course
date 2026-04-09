@@ -23,7 +23,8 @@ message Repository {
   string html_url = 7;
 }
 
-message PingRequest {}
+message PingRequest {
+}
 
 message PingResponse {
   string status = 1;

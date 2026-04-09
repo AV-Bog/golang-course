@@ -19,7 +19,7 @@ lint: protolint gofmtcheck golint
 fix:
 	$(PROTOLINT) lint -fix .
 	find . -type f -name '*.go' ! -name '*.pb.go' -print0 | xargs -0 $(GOIMPORTS) -w
-	$(GOLANGCI_LINT) run --fix --timeout=2m -E gocritic -v ./tools
+	$(GOLANGCI_LINT) run --fix --timeout=2m -E gocritic -v ./...
 
 protobuf:
 	export PATH="$(GOBIN):$$PATH" && \
