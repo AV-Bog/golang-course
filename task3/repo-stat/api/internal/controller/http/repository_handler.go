@@ -25,6 +25,6 @@ func NewRepositoryHandler(log *slog.Logger, getRepo *usecase.GetRepository) http
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(resp)
+		json.NewEncoder(w).Encode(resp.Repository)
 	}
 }

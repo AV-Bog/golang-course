@@ -3,9 +3,9 @@ package grpc
 import (
 	"context"
 	"log/slog"
+	processorpb "repo-stat/proto/proto/processor"
 
 	"repo-stat/processor/internal/usecase"
-	processorpb "repo-stat/proto/gen/go/processor/v1"
 )
 
 type Server struct {
@@ -24,16 +24,24 @@ func NewHandler(log *slog.Logger, forwardRepository *usecase.ForwardRepository) 
 func (s *Server) GetRepository(ctx context.Context, req *processorpb.GetRepositoryRequest) (*processorpb.GetRepositoryResponse, error) {
 	resp, err := s.forwardRepository.Execute(ctx, req.Url)
 	if err != nil {
-		return &processorpb.GetRepositoryResponse{
-			ErrorCode:    int32(500),
-			ErrorMessage: err.Error(),
-		}, err
+		s.log.Error("failed to forward request", "error", err, "url", req.Url)
+		return nil, err
+	}
+
+	var processorRepo *processorpb.Repository
+	if resp.Repository != nil {
+		processorRepo = &processorpb.Repository{
+			FullName:    resp.Repository.FullName,
+			Description: resp.Repository.Description,
+			Stars:       resp.Repository.Stars,
+			Forks:       resp.Repository.Forks,
+			CreatedAt:   resp.Repository.CreatedAt,
+			Language:    resp.Repository.Language,
+		}
 	}
 
 	return &processorpb.GetRepositoryResponse{
-		Repository:   resp.Repository,
-		ErrorCode:    resp.ErrorCode,
-		ErrorMessage: resp.ErrorMessage,
+		Repository: processorRepo,
 	}, nil
 }
 

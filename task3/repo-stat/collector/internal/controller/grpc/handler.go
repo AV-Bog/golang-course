@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"repo-stat/collector/internal/usecase"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
