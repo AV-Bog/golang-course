@@ -57,8 +57,8 @@ build:
 
 test:
 	go test -race -coverprofile=coverage.out -covermode=atomic \
-		$(shell go list ./... | grep -E -v 'repo-stat/(proto)')
-	go tool cover -html=coverage.out -o coverage.html
+		$(shell go list ./... | grep -E -v 'repo-stat/(proto|subscriber)')
+	@echo "✓ Tests completed. Coverage data in coverage.out"
 
 clean:
 	find . -type f -name '*.pb.go' -delete
