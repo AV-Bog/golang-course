@@ -12,7 +12,7 @@ PROTOC_GEN_GO_VERSION := v1.32.0
 PROTOC_GEN_GO_GRPC_VERSION := v1.6.1
 GOLANGCI_LINT_VERSION := v2.11.2
 
-.PHONY: lint fix protobuf protolint gofmtcheck golint tools test build
+.PHONY: lint fix protobuf protolint gofmtcheck golint tools test build clean
 
 lint: protolint gofmtcheck golint
 
@@ -32,6 +32,7 @@ protobuf:
 		--go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		proto/proto/processor/processor.proto
+
 protolint:
 	$(PROTOLINT) .
 
@@ -56,8 +57,7 @@ build:
 	go build ./processor/...
 
 test:
-	go test -race -coverprofile=coverage.out -covermode=atomic \
-		$(shell go list ./... | grep -E -v 'repo-stat/(proto|subscriber)')
+	go test -race -coverprofile=coverage.out -covermode=atomic ./api/... ./collector/... ./processor/... ./platform/...
 	@echo "✓ Tests completed. Coverage data in coverage.out"
 
 clean:
