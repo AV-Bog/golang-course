@@ -2,16 +2,12 @@ app:
   app_name: "repo-stat-api"
 
 http:
-  address: "localhost:8080"
+  address: ":8080"
   timeout: "30s"
 
 logger:
   log_level: "DEBUG"
 
 services:
-  processor:
-    address: "localhost:50051"
-    protocol: "grpc"
-  subscriber:
-    address: "localhost:8081"
-    protocol: "http"
+  processor: "processor:50051"
+  subscriber: "http://subscriber:8080"

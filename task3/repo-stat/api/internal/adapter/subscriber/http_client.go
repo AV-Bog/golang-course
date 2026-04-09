@@ -36,19 +36,18 @@ func NewHTTPClient(address string, log *slog.Logger) (*HTTPClient, error) {
 func (c *HTTPClient) Ping(ctx context.Context) error {
 	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+"/ping", nil)
 	if err != nil {
-		return fmt.Errorf("create request: %w", err)
+		return err
 	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("http request: %w", err)
+		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unexpected status: %d", resp.StatusCode)
 	}
-
 	return nil
 }
 
