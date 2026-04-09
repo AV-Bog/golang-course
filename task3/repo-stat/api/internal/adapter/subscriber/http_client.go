@@ -3,6 +3,7 @@ package subscriber
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -16,8 +17,8 @@ type HTTPClient struct {
 }
 
 func NewHTTPClient(address string, log *slog.Logger) (*HTTPClient, error) {
-	if !strings.HasPrefix(address, "http://") && !strings.HasPrefix(address, "https://") {
-		address = "http://" + address
+	if !strings.HasPrefix(address, "https://") && !strings.HasPrefix(address, "https://") {
+		address = "https://" + address
 	}
 
 	return &HTTPClient{
@@ -43,7 +44,12 @@ func (c *HTTPClient) Ping(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unexpected status: %d", resp.StatusCode)

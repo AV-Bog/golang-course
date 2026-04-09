@@ -12,7 +12,10 @@ func AddRoutes(mux *http.ServeMux, log *slog.Logger, ping *usecase.Ping, getRepo
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+		err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+		if err != nil {
+			return
+		}
 	})
 
 	mux.Handle("GET /api/ping", NewPingHandler(log, ping))

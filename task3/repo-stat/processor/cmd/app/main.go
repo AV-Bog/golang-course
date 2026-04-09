@@ -31,7 +31,12 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("create collector client: %w", err)
 	}
-	defer collectorClient.Close()
+	defer func(collectorClient *collector.Client) {
+		err := collectorClient.Close()
+		if err != nil {
+
+		}
+	}(collectorClient)
 
 	forwardUC := usecase.NewForwardRepository(collectorClient)
 	handler := grpc.NewHandler(log, forwardUC)
@@ -52,11 +57,14 @@ func run(ctx context.Context) error {
 
 func main() {
 	ctx := context.Background()
-	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+	var _, cancel = signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
 	if err := run(ctx); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		_, err := fmt.Fprintln(os.Stderr, err)
+		if err != nil {
+			return
+		}
 		os.Exit(1)
 	}
 }
