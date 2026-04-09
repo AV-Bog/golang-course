@@ -56,9 +56,9 @@ build:
 	go build ./processor/...
 
 test:
-	go test -race -coverprofile cover.out \
+	go test -race -coverprofile=coverage.out -covermode=atomic \
 		$(shell go list ./... | grep -E -v 'repo-stat/(proto)')
-	go tool cover -html=cover.out -o cover.html
+	go tool cover -html=coverage.out -o coverage.html
 
 clean:
 	find . -type f -name '*.pb.go' -delete
