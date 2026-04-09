@@ -68,10 +68,7 @@ func (c *Client) GetRepository(owner, repo string) (*domain.Repository, error) {
 		return nil, fmt.Errorf("HTTP request failed: %w", err)
 	}
 	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-
-		}
+		_ = Body.Close()
 	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)

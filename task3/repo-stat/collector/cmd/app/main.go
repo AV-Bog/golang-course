@@ -49,10 +49,7 @@ func main() {
 	defer cancel()
 
 	if err := run(ctx); err != nil {
-		_, err := fmt.Fprintln(os.Stderr, err)
-		if err != nil {
-			return
-		}
-		os.Exit(1)
+		fmt.Fprintln(os.Stderr, err)
+		return
 	}
 }

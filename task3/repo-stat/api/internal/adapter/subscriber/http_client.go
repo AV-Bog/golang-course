@@ -17,8 +17,9 @@ type HTTPClient struct {
 }
 
 func NewHTTPClient(address string, log *slog.Logger) (*HTTPClient, error) {
-	if !strings.HasPrefix(address, "https://") && !strings.HasPrefix(address, "https://") {
-		address = "https://" + address
+	// ИСПРАВЛЕНО: проверяем оба протокола
+	if !strings.HasPrefix(address, "http://") && !strings.HasPrefix(address, "https://") {
+		address = "http://" + address
 	}
 
 	return &HTTPClient{
@@ -45,10 +46,7 @@ func (c *HTTPClient) Ping(ctx context.Context) error {
 		return err
 	}
 	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-
-		}
+		_ = Body.Close()
 	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
