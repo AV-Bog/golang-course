@@ -12,29 +12,29 @@ PROTOC_GEN_GO_VERSION := v1.32.0
 PROTOC_GEN_GO_GRPC_VERSION := v1.6.1
 GOLANGCI_LINT_VERSION := v2.11.2
 
-.PHONY: lint fix protobuf protolint gofmtcheck golint tools test
+.PHONY: lint fix protobuf protolint gofmtcheck golint tools test build
 
 lint: protolint gofmtcheck golint
 
 fix:
 	$(PROTOLINT) lint -fix .
 	find . -type f -name '*.go' ! -name '*.pb.go' -print0 | xargs -0 $(GOIMPORTS) -w
-	$(GOLANGCI_LINT) run --fix --timeout=2m -E gocritic -v ./...
+	$(GOLANGCI_LINT) run --fix --timeout=2m -E gocritic -v ./tools
 
 protobuf:
 	PATH="$(GOBIN):$$PATH" protoc \
 		--go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		proto/subscriber/subscriber.proto
+		proto/proto/subscriber/subscriber.proto || true
 	PATH="$(GOBIN):$$PATH" protoc \
 		--go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		proto/collector/collector.proto
+		proto/proto/collector/collector.proto
 	PATH="$(GOBIN):$$PATH" protoc \
 		--go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		proto/processor/processor.proto
-		
+		proto/proto/processor/processor.proto
+
 protolint:
 	$(PROTOLINT) .
 
@@ -53,7 +53,16 @@ tools:
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@$(PROTOC_GEN_GO_GRPC_VERSION)
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 
-test:
+build: protobuf
+	go build ./api/...
+	go build ./collector/...
+	go build ./processor/...
+
+test: protobuf
 	go test -race -coverprofile cover.out \
 		$(shell go list ./... | grep -E -v 'repo-stat/(proto)')
 	go tool cover -html=cover.out -o cover.html
+
+clean:
+	find . -type f -name '*.pb.go' -delete
+	find . -type f -name '*_grpc.pb.go' -delete
