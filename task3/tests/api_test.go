@@ -49,7 +49,7 @@ func waitForAPI(t *testing.T) {
 		defer resp.Body.Close()
 
 		return resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusServiceUnavailable
-	}, 60*time.Second, 500*time.Millisecond, "api did not become ready")
+	}, 20*time.Second, 500*time.Millisecond, "api did not become ready")
 }
 
 func serviceMap(services []PingService) map[string]string {
