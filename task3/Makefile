@@ -16,16 +16,10 @@ down-volumes: check-container-runtime ## Stop and remove containers and all volu
 run-tests: ## Run tests container
 	$(CONTAINER_RUNTIME) run --rm --network=host tests:latest
 
-test: check-container-runtime ## Up containers and run tests
-	@$(MAKE) down-volumes
-	@$(MAKE) up
-	@echo "Waiting for cluster to start" \
-		&& for i in $$(seq 15); do \
-			curl -sf http://localhost:28080 >/dev/null 2>&1 && break \
-				|| true; \
-			sleep 1; \
-		done || { echo "Error: timeout"; exit 1; }
-	@$(MAKE) run-tests; status=$$?; $(MAKE) down-volumes; exit $$status
+test:
+	go test -race -coverprofile=coverage.out -covermode=atomic \
+		$(shell go list ./... | grep -E -v 'repo-stat/(proto|subscriber)')
+	@echo "✓ Tests completed. Coverage data in coverage.out"
 
 lint: ## Run linters
 	$(MAKE) -C repo-stat lint

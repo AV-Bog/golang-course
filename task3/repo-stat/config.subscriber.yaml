@@ -1,0 +1,5 @@
+grpc:
+  address: "0.0.0.0:50053"
+
+logger:
+  log_level: "INFO"

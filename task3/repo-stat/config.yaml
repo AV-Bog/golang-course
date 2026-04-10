@@ -1,0 +1,11 @@
+http:
+  address: "0.0.0.0:8080"
+
+logger:
+  log_level: "INFO"
+
+grpc:
+  address: "0.0.0.0:50051"
+
+services:
+  collector: "collector:50051"

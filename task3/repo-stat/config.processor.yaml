@@ -1,0 +1,8 @@
+grpc:
+  address: "0.0.0.0:50052"
+
+logger:
+  log_level: "INFO"
+
+services:
+  collector: "collector:50051"
