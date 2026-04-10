@@ -21,15 +21,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
 
-      - name: Start Docker services
+      - name: Start services with Docker
         run: |
           cd task3
           docker compose up -d --build
           sleep 30
-          docker compose ps
-          curl http://localhost:28080/health || echo "Health check failed"
+          curl http://localhost:28080/health
+          curl http://localhost:28080/api/ping
 
-      - name: Run tests
+      - name: Run tests on host
         run: |
           cd task3/tests
           go test -v ./
