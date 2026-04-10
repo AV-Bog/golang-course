@@ -5,5 +5,5 @@ logger:
   log_level: "DEBUG"
 
 services:
-  processor: "localhost:50052"
-  subscriber: "localhost:50053"
+  processor: "processor:50052"
+  subscriber: "subscriber:50053"
