@@ -64,10 +64,10 @@ jobs:
           echo "Waiting for services to be ready..."
           for i in {1..30}; do
             if curl -s http://localhost:8080/ping > /dev/null 2>&1; then
-              echo "✅ API is ready after $i seconds"
+              echo "API is ready after $i seconds"
               break
             fi
-            echo "⏳ Waiting for API... ($i/30)"
+            echo "Waiting for API... ($i/30)"
             sleep 2
           done
           
