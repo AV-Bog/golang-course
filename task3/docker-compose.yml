@@ -4,7 +4,7 @@ services:
       context: ./repo-stat
       dockerfile: Dockerfile.api
     ports:
-      - "8080:8080"
+      - "28080:8080"
     volumes:
       - ./repo-stat/config.api.yaml:/app/config.yaml:ro
 
