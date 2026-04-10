@@ -1,6 +1,7 @@
 SHELL := /bin/sh
 
 GOBIN := $(shell go env GOPATH)/bin
+GO_VERSION := $(shell go version | awk '{print $$3}')
 
 PROTOLINT := $(GOBIN)/protolint
 GOIMPORTS := $(GOBIN)/goimports
@@ -57,8 +58,11 @@ build:
 	go build ./processor/...
 
 test:
-	go test -race -coverprofile=coverage.out -covermode=atomic ./api/... ./collector/... ./processor/... ./platform/...
+	@echo "Running tests with $(GO_VERSION)"
+	go test -race -coverprofile=coverage.out -covermode=atomic -coverpkg=./... ./api/... ./collector/... ./processor/... ./platform/...
+	go tool cover -func=coverage.out | grep total
 	@echo "✓ Tests completed. Coverage data in coverage.out"
+	@echo "To view coverage details: go tool cover -html=coverage.out"
 
 clean:
 	find . -type f -name '*.pb.go' -delete
