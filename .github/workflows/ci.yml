@@ -67,7 +67,7 @@ jobs:
               echo "API is ready after $i seconds"
               break
             fi
-            echo "⏳ Waiting for API... ($i/30)"
+            echo "Waiting for API... ($i/30)"
             sleep 2
           done
           
