@@ -15,7 +15,7 @@ func NewRepositoryHandler(log *slog.Logger, getRepo *usecase.GetRepository) http
 		if url == "" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": "url parameter is required"})
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": "url parameter is required"})
 			return
 		}
 
@@ -35,7 +35,7 @@ func NewRepositoryHandler(log *slog.Logger, getRepo *usecase.GetRepository) http
 			}
 
 			w.WriteHeader(statusCode)
-			json.NewEncoder(w).Encode(map[string]string{"error": errMsg})
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": errMsg})
 			return
 		}
 
