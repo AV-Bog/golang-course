@@ -1,22 +1,20 @@
 FROM golang:1.25 AS build
 
-RUN apk add --no-cache git
+RUN apt-get update && apt-get install -y git
 
 WORKDIR /src
-
-COPY go.mod go.sum ./
+COPY . .
 RUN go mod download
 
-COPY api ./api
-COPY platform ./platform
-COPY proto ./proto
-
-ENV CGO_ENABLED=0
-RUN go build -o /api ./api/cmd/app/main.go
+# Скомпилировать api в конкретный файл
+RUN go build -o /api ./api/cmd/app
 
 FROM alpine:latest
 RUN apk add --no-cache ca-certificates
-COPY --from=build /api /api
-COPY api/config/config.yaml /config.yaml
+WORKDIR /app
 
-ENTRYPOINT ["/api", "-config", "/config.yaml"]
+# Скопировать бинарник из корня
+COPY --from=build /api /app/api
+
+EXPOSE 8080
+CMD ["./api"]

@@ -1,29 +1,23 @@
 FROM golang:1.25 AS build
 
-RUN apk add --no-cache protobuf protobuf-dev git
+RUN apt-get update && apt-get install -y protobuf-compiler git
 
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-ENV PATH="$PATH:$(go env GOPATH)/bin"
 
 WORKDIR /src
-
-COPY go.mod go.sum ./
+COPY . .
 RUN go mod download
 
-COPY proto ./proto
-COPY collector ./collector
-COPY platform ./platform
-
-RUN protoc --go_out=. --go_opt=paths=source_relative \
-           --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-           proto/proto/collector/collector.proto
-
-ENV CGO_ENABLED=0
-RUN go build -o /collector ./collector/cmd/app/main.go
+# Скомпилировать collector в конкретный файл
+RUN go build -o /collector ./collector/cmd/app
 
 FROM alpine:latest
 RUN apk add --no-cache ca-certificates
-COPY --from=build /collector /collector
-COPY collector/config/config.yaml /config.yaml
-ENTRYPOINT ["/collector", "-config", "/config.yaml"]
+WORKDIR /app
+
+# Скопировать бинарник из корня
+COPY --from=build /collector /app/collector
+
+EXPOSE 50051
+CMD ["./collector"]

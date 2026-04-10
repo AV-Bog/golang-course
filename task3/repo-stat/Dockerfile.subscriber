@@ -1,25 +1,23 @@
 FROM golang:1.25 AS build
 
-RUN apt update && apt install -y protobuf-compiler
+RUN apt-get update && apt-get install -y protobuf-compiler git
+
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-ENV PATH="$PATH:$(go env GOPATH)/bin"
 
-COPY go.mod go.sum /src/
-COPY proto /src/proto
-COPY subscriber /src/subscriber
-COPY platform /src/platform
+WORKDIR /src
+COPY . .
+RUN go mod download
 
-RUN cd /src && \
-    protoc --go_out=.      --go_opt=paths=source_relative \
-           --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-           proto/subscriber/subscriber.proto
+# Скомпилировать subscriber в конкретный файл
+RUN go build -o /subscriber ./subscriber/cmd/app
 
-ENV CGO_ENABLED=0
-RUN cd /src && go build -o /subscriber subscriber/cmd/app/main.go
+FROM alpine:latest
+RUN apk add --no-cache ca-certificates
+WORKDIR /app
 
-FROM scratch
+# Скопировать бинарник из корня
+COPY --from=build /subscriber /app/subscriber
 
-COPY --from=build /subscriber /subscriber
-
-ENTRYPOINT ["/subscriber", "-config", "/config.yaml"]
+EXPOSE 50053
+CMD ["./subscriber"]
