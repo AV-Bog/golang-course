@@ -1,20 +1,16 @@
-FROM golang:1.25 AS build
+FROM --platform=linux/arm64 golang:1.25 AS build
 
 RUN apt-get update && apt-get install -y git
 
 WORKDIR /src
 COPY . .
 RUN go mod download
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o /api ./api/cmd/app
 
-# Скомпилировать api в конкретный файл
-RUN go build -o /api ./api/cmd/app
-
-FROM alpine:latest
+FROM --platform=linux/arm64 alpine:latest
 RUN apk add --no-cache ca-certificates
 WORKDIR /app
-
-# Скопировать бинарник из корня
 COPY --from=build /api /app/api
 
 EXPOSE 8080
-CMD ["./api"]
+CMD ["/app/api"]

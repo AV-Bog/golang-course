@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"repo-stat/collector/internal/adapter/github"
 	"repo-stat/collector/internal/domain"
 )
@@ -34,13 +36,13 @@ func NewGetRepository(githubToken string) *GetRepository {
 func (uc *GetRepository) Execute(ctx context.Context, repoURL string) (*domain.Repository, error) {
 	owner, name, err := parseGitHubURL(repoURL)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrInvalidURL, err)
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	repo, err := uc.githubClient.GetRepository(owner, name)
 	if err != nil {
 		if errors.Is(err, github.ErrRepoNotFound) {
-			return nil, ErrRepoNotFound
+			return nil, status.Error(codes.NotFound, err.Error())
 		}
 		return nil, err
 	}

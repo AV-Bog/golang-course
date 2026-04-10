@@ -17,7 +17,6 @@ type HTTPClient struct {
 }
 
 func NewHTTPClient(address string, log *slog.Logger) (*HTTPClient, error) {
-	// ИСПРАВЛЕНО: проверяем оба протокола
 	if !strings.HasPrefix(address, "http://") && !strings.HasPrefix(address, "https://") {
 		address = "http://" + address
 	}

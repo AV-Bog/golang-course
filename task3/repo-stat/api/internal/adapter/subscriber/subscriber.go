@@ -3,7 +3,6 @@ package subscriber
 import (
 	"context"
 	"log/slog"
-	"repo-stat/api/internal/domain"
 
 	subscirberpb "repo-stat/proto/subscriber"
 
@@ -33,14 +32,15 @@ func NewClient(address string, log *slog.Logger) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) Ping(ctx context.Context) domain.PingStatus {
+func (c *Client) Ping(ctx context.Context) error {
+	c.log.Info("Calling subscriber Ping")
 	_, err := c.pb.Ping(ctx, &subscirberpb.PingRequest{})
 	if err != nil {
 		c.log.Error("subscriber ping failed", "error", err)
-		return domain.PingStatusDown
+		return err
 	}
-
-	return domain.PingStatusUp
+	c.log.Info("subscriber ping succeeded")
+	return nil
 }
 
 func (c *Client) Close() error {

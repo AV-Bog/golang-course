@@ -1,0 +1,44 @@
+services:
+  api:
+    build:
+      context: ./repo-stat
+      dockerfile: Dockerfile.api
+    ports:
+      - "8080:8080"
+    depends_on:
+      - collector
+      - processor
+      - subscriber
+
+  collector:
+    build:
+      context: ./repo-stat
+      dockerfile: Dockerfile.collector
+    ports:
+      - "50051:50051"
+
+  processor:
+    build:
+      context: ./repo-stat
+      dockerfile: Dockerfile.processor
+    ports:
+      - "50052:50052"
+
+  subscriber:
+    build:
+      context: ./repo-stat
+      dockerfile: Dockerfile.subscriber
+    ports:
+      - "50053:50053"
+
+  tests:
+    build:
+      context: ./tests
+      dockerfile: Dockerfile
+    depends_on:
+      - api
+      - collector
+      - processor
+      - subscriber
+    environment:
+      - API_URL=http://api:8080

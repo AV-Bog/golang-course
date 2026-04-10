@@ -18,7 +18,7 @@ func NewHandler(ctx context.Context, log *slog.Logger, cfg config.Config) (http.
 		return nil, err
 	}
 
-	subscriberClient, err := subscriber.NewHTTPClient(cfg.Services.Subscriber, log)
+	subscriberClient, err := subscriber.NewClient(cfg.Services.Subscriber, log)
 	if err != nil {
 		log.Error("cannot init subscriber adapter", "error", err)
 		return nil, err
