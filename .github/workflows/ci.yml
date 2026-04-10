@@ -6,7 +6,7 @@ on:
     branches: [main, master]
 
 jobs:
-  test:
+  build-Ubuntu:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -16,23 +16,40 @@ jobs:
         with:
           go-version: '1.26.1'
 
+      - name: Install protoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+
       - name: Build and run containers
         run: |
           cd task3
           docker compose up -d --build
           
-          # Ждём и проверяем
-          for i in {1..30}; do
-            if docker compose ps api | grep -q "Up"; then
-              echo "API is running"
-              break
-            fi
-            echo "Waiting for API... ($i/30)"
-            sleep 2
-          done
+          echo "=== Waiting 30 seconds ==="
+          sleep 30
           
+          echo "=== Docker Compose Status ==="
           docker compose ps
-          docker compose logs api --tail=50
+          
+          echo "=== API Logs ==="
+          docker compose logs api
+          
+          echo "=== Collector Logs ==="
+          docker compose logs collector
+          
+          echo "=== Processor Logs ==="
+          docker compose logs processor
+          
+          echo "=== Subscriber Logs ==="
+          docker compose logs subscriber
+          
+          echo "=== Testing API from host ==="
+          curl -v http://localhost:8080/health || echo "HEALTH ENDPOINT FAILED"
+          curl -v http://localhost:8080/api/ping || echo "PING ENDPOINT FAILED"
+          
+          echo "=== Testing API from inside container ==="
+          docker exec task3-api-1 wget -O- http://localhost:8080/health 2>&1 || echo "Cannot connect from inside"
 
       - name: Run tests
         run: |
