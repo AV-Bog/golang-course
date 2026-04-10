@@ -61,21 +61,20 @@ jobs:
           cd task3
           docker compose up -d --build
           
-          echo "Waiting for containers to start..."
-          sleep 10
-          
-          docker compose ps
-          
-          echo "Waiting for API to be ready..."
+          echo "Waiting for services to be ready..."
           for i in {1..30}; do
-            if curl -s http://localhost:8080/health; then
+            if curl -s http://localhost:8080/health | grep -q "ok"; then
               echo "API is ready after $i seconds"
               break
             fi
-            echo "Waiting for API... ($i/30)"
+            echo "⏳ Waiting for API... ($i/30)"
             sleep 2
           done
           
+          echo "=== Container Status ==="
+          docker compose ps
+          
+          echo "=== Container Logs ==="
           docker compose logs --tail=50
 
       - name: Run integration tests
