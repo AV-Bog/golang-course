@@ -2,11 +2,11 @@ FROM golang:1.25 AS build
 WORKDIR /src
 COPY . .
 RUN go mod download
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/processor ./processor/cmd/app
+RUN CGO_ENABLED=0 GOOS=linux go build -o /processor_bin ./processor/cmd/app
 
 FROM alpine:latest
 RUN apk add --no-cache ca-certificates
 WORKDIR /app
-COPY --from=build /app/processor /app/processor
+COPY --from=build /processor_bin /app/processor
 EXPOSE 50052
 CMD ["/app/processor"]
