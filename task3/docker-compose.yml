@@ -1,6 +1,5 @@
 services:
   api:
-    platform: linux/arm64
     build:
       context: ./repo-stat
       dockerfile: Dockerfile.api
@@ -10,7 +9,6 @@ services:
       - ./repo-stat/config.api.yaml:/app/config.yaml:ro
 
   collector:
-    platform: linux/arm64
     build:
       context: ./repo-stat
       dockerfile: Dockerfile.collector
@@ -20,7 +18,6 @@ services:
       - ./repo-stat/config.yaml:/app/config.yaml:ro
 
   processor:
-    platform: linux/arm64
     build:
       context: ./repo-stat
       dockerfile: Dockerfile.processor
@@ -30,7 +27,6 @@ services:
       - ./repo-stat/config.processor.yaml:/app/config.yaml:ro
 
   subscriber:
-    platform: linux/arm64
     build:
       context: ./repo-stat
       dockerfile: Dockerfile.subscriber
@@ -40,7 +36,6 @@ services:
       - ./repo-stat/config.subscriber.yaml:/app/config.yaml:ro
 
   tests:
-    platform: linux/arm64
     build:
       context: ./tests
       dockerfile: Dockerfile
