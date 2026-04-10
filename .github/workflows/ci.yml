@@ -53,8 +53,8 @@ jobs:
       - name: Build and run with docker-compose
         run: |
           cd task3
-          docker-compose up -d --build
-          sleep 15
+          docker compose up -d --build
+          sleep 50
           docker-compose ps
           docker-compose logs
 
