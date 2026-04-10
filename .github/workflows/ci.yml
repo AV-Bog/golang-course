@@ -16,19 +16,47 @@ jobs:
         with:
           go-version: '1.26.1'
 
-      - name: Start Docker containers
+      - name: Start containers
         run: |
           cd task3
           docker compose up -d --build
-          sleep 15
+          
+          echo "=== Waiting for services to be ready ==="
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/health 2>/dev/null | grep -q "ok"; then
+              echo "API is ready after $i seconds"
+              break
+            fi
+            echo "⏳ Waiting for API... ($i/30)"
+            sleep 2
+          done
+          
+          echo "=== Container Status ==="
+          docker compose ps
+          
+          echo "=== Container Logs ==="
+          docker compose logs --tail=50
+          
+          echo "=== Testing API endpoints ==="
+          curl -s http://localhost:8080/health
+          echo ""
+          curl -s http://localhost:8080/api/ping
+          echo ""
 
-      - name: Run tests
+      - name: Run integration tests
         run: |
           cd task3/tests
-          go test -v ./
+          go test -v -timeout 5m ./
 
-      - name: Stop Docker containers
+      - name: Stop containers
         if: always()
         run: |
           cd task3
           docker compose down
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          cd task3
+          echo "=== Full logs on failure ==="
+          docker compose logs
