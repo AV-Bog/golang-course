@@ -5,6 +5,11 @@ services:
       dockerfile: Dockerfile.api
     ports:
       - "8080:8080"
+    depends_on:
+      - processor
+      - subscriber
+    environment:
+      - CONFIG_PATH=/app/config.yaml
     volumes:
       - ./repo-stat/config.api.yaml:/app/config.yaml:ro
 
@@ -25,6 +30,8 @@ services:
       - "50052:50052"
     volumes:
       - ./repo-stat/config.processor.yaml:/app/config.yaml:ro
+    depends_on:
+      - collector
 
   subscriber:
     build:
@@ -34,12 +41,3 @@ services:
       - "50053:50053"
     volumes:
       - ./repo-stat/config.subscriber.yaml:/app/config.yaml:ro
-
-  tests:
-    build:
-      context: ./tests
-      dockerfile: Dockerfile
-    depends_on:
-      - api
-    environment:
-      - API_URL=http://api:8080

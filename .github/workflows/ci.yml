@@ -6,7 +6,7 @@ on:
     branches: [main, master]
 
 jobs:
-  build-Ubuntu:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -16,25 +16,38 @@ jobs:
         with:
           go-version: '1.26.1'
 
-      - name: Start containers
+      - name: Build and run containers
         run: |
           cd task3
           docker compose up -d --build
-
-          echo "Waiting for API to be ready..."
-          for i in {1..60}; do
-            if curl -s http://localhost:8080/health 2>/dev/null | grep -q "ok"; then
-              echo "API is ready after $i seconds"
-              break
-            fi
-            echo "Waiting for API... ($i/60)"
-            sleep 2
-          done
-
-          echo "=== Container Status ==="
+          
+          echo "=== Waiting 10 seconds ==="
+          sleep 10
+          
+          echo "=== Container status ==="
           docker compose ps
+          
+          echo "=== API logs ==="
+          docker compose logs api --tail=50
+          
+          echo "=== Collector logs ==="
+          docker compose logs collector --tail=20
+          
+          echo "=== Processor logs ==="
+          docker compose logs processor --tail=20
+          
+          echo "=== Subscriber logs ==="
+          docker compose logs subscriber --tail=20
 
-      - name: Run tests
+      - name: Test API directly
+        run: |
+          echo "=== Testing API endpoints ==="
+          curl -v http://localhost:8080/health
+          echo ""
+          curl -v http://localhost:8080/api/ping
+          echo ""
+
+      - name: Run integration tests
         run: |
           cd task3/tests
           go test -v ./
