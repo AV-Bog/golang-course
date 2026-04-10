@@ -1,5 +1,7 @@
 http:
   address: "0.0.0.0:8080"
+logger:
+  log_level: "INFO"
 services:
   processor: "localhost:50052"
   subscriber: "localhost:50053"

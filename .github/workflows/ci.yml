@@ -28,67 +28,26 @@ jobs:
           go build -o /tmp/collector ./collector/cmd/app
           go build -o /tmp/processor ./processor/cmd/app
           go build -o /tmp/subscriber ./subscriber/cmd/app
-          ls -la /tmp/
 
-      - name: Create config files
+      - name: Copy configs
         run: |
-          cd task3/repo-stat
-          
-          cat > /tmp/config.api.yaml << 'EOF'
-          http:
-            address: "0.0.0.0:8080"
-          services:
-            processor: "localhost:50052"
-            subscriber: "localhost:50053"
-          EOF
-          
-          cat > /tmp/config.processor.yaml << 'EOF'
-          grpc:
-            address: "0.0.0.0:50052"
-          services:
-            collector: "localhost:50051"
-          EOF
-          
-          cat > /tmp/config.subscriber.yaml << 'EOF'
-          grpc:
-            address: "0.0.0.0:50053"
-          EOF
-          
-          cat > /tmp/config.yaml << 'EOF'
-          grpc:
-            address: "0.0.0.0:50051"
-          EOF
+          cp task3/repo-stat/config.yaml /tmp/config.yaml
+          cp task3/repo-stat/config.processor.yaml /tmp/config.processor.yaml
+          cp task3/repo-stat/config.subscriber.yaml /tmp/config.subscriber.yaml
+          cp task3/repo-stat/config.api.yaml /tmp/config.api.yaml
 
       - name: Run services
         run: |
-          /tmp/collector -config /tmp/config.yaml > /tmp/collector.log 2>&1 &
-          echo "Collector started"
+          /tmp/collector -config /tmp/config.yaml &
           sleep 2
-          
-          /tmp/processor -config /tmp/config.processor.yaml > /tmp/processor.log 2>&1 &
-          echo "Processor started"
+          /tmp/processor -config /tmp/config.processor.yaml &
           sleep 2
-          
-          /tmp/subscriber -config /tmp/config.subscriber.yaml > /tmp/subscriber.log 2>&1 &
-          echo "Subscriber started"
+          /tmp/subscriber -config /tmp/config.subscriber.yaml &
           sleep 2
-          
-          /tmp/api -config /tmp/config.api.yaml > /tmp/api.log 2>&1 &
-          echo "API started"
+          /tmp/api -config /tmp/config.api.yaml &
           
           sleep 15
           
-          # Показываем логи
-          echo "=== API Logs ==="
-          cat /tmp/api.log
-          echo "=== Collector Logs ==="
-          cat /tmp/collector.log
-          echo "=== Processor Logs ==="
-          cat /tmp/processor.log
-          echo "=== Subscriber Logs ==="
-          cat /tmp/subscriber.log
-          
-          echo "=== Testing API ==="
           curl -v http://localhost:8080/health
           curl -v http://localhost:8080/api/ping
 
@@ -96,15 +55,3 @@ jobs:
         run: |
           cd task3/tests
           go test -v ./
-
-      - name: Show logs on failure
-        if: failure()
-        run: |
-          echo "=== API Logs ==="
-          cat /tmp/api.log 2>/dev/null || echo "No API logs"
-          echo "=== Collector Logs ==="
-          cat /tmp/collector.log 2>/dev/null || echo "No collector logs"
-          echo "=== Processor Logs ==="
-          cat /tmp/processor.log 2>/dev/null || echo "No processor logs"
-          echo "=== Subscriber Logs ==="
-          cat /tmp/subscriber.log 2>/dev/null || echo "No subscriber logs"
