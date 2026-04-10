@@ -6,7 +6,7 @@ on:
     branches: [main, master]
 
 jobs:
-  integration:
+  build-Ubuntu:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -16,18 +16,18 @@ jobs:
         with:
           go-version: '1.26.1'
 
-      - name: Start containers
+      - name: Start Docker containers
         run: |
           cd task3
           docker compose up -d --build
           sleep 15
 
-      - name: Run integration tests
+      - name: Run tests
         run: |
           cd task3/tests
           go test -v ./
 
-      - name: Stop containers
+      - name: Stop Docker containers
         if: always()
         run: |
           cd task3
