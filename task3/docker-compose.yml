@@ -4,7 +4,7 @@ services:
       context: ./repo-stat
       dockerfile: Dockerfile.api
     ports:
-      - "8080:8080"
+      - "28080:8080"
     volumes:
       - ./repo-stat/config.api.yaml:/app/config.yaml:ro
     healthcheck:
@@ -21,6 +21,8 @@ services:
       dockerfile: Dockerfile.collector
     ports:
       - "50051:50051"
+    volumes:
+      - ./repo-stat/config.yaml:/app/config.yaml:ro
     networks:
       - task3-network
 
@@ -30,6 +32,8 @@ services:
       dockerfile: Dockerfile.processor
     ports:
       - "50052:50052"
+    volumes:
+      - ./repo-stat/config.processor.yaml:/app/config.yaml:ro
     networks:
       - task3-network
 
@@ -39,6 +43,8 @@ services:
       dockerfile: Dockerfile.subscriber
     ports:
       - "50053:50053"
+    volumes:
+      - ./repo-stat/config.subscriber.yaml:/app/config.yaml:ro
     networks:
       - task3-network
 
@@ -50,7 +56,7 @@ services:
       api:
         condition: service_healthy
     environment:
-      - API_URL=http://api:8080
+      - API_URL=http://api:28080
     networks:
       - task3-network
     command: ["go", "test", "-v", "."]
