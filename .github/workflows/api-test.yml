@@ -1,0 +1,25 @@
+name: API Test
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.1'
+
+      - name: Build and run API
+        run: |
+          cd task3/repo-stat
+          go build -o api ./api/cmd/app
+          ./api -config config.api.yaml &
+          sleep 10
+          curl -v http://localhost:28080/health
+          curl -v http://localhost:28080/api/ping
