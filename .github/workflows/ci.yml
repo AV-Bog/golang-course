@@ -6,7 +6,7 @@ on:
     branches: [main, master]
 
 jobs:
-  build-Ubuntu:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -21,43 +21,90 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
 
-      - name: Build and run containers
+      - name: Build services
         run: |
-          cd task3
-          docker compose up -d --build
+          cd task3/repo-stat
+          go build -o /tmp/api ./api/cmd/app
+          go build -o /tmp/collector ./collector/cmd/app
+          go build -o /tmp/processor ./processor/cmd/app
+          go build -o /tmp/subscriber ./subscriber/cmd/app
+          ls -la /tmp/
+
+      - name: Create config files
+        run: |
+          cd task3/repo-stat
           
-          echo "=== Waiting 30 seconds ==="
-          sleep 30
+          cat > /tmp/config.api.yaml << 'EOF'
+          http:
+            address: "0.0.0.0:8080"
+          services:
+            processor: "localhost:50052"
+            subscriber: "localhost:50053"
+          EOF
           
-          echo "=== Docker Compose Status ==="
-          docker compose ps
+          cat > /tmp/config.processor.yaml << 'EOF'
+          grpc:
+            address: "0.0.0.0:50052"
+          services:
+            collector: "localhost:50051"
+          EOF
           
+          cat > /tmp/config.subscriber.yaml << 'EOF'
+          grpc:
+            address: "0.0.0.0:50053"
+          EOF
+          
+          cat > /tmp/config.yaml << 'EOF'
+          grpc:
+            address: "0.0.0.0:50051"
+          EOF
+
+      - name: Run services
+        run: |
+          /tmp/collector -config /tmp/config.yaml > /tmp/collector.log 2>&1 &
+          echo "Collector started"
+          sleep 2
+          
+          /tmp/processor -config /tmp/config.processor.yaml > /tmp/processor.log 2>&1 &
+          echo "Processor started"
+          sleep 2
+          
+          /tmp/subscriber -config /tmp/config.subscriber.yaml > /tmp/subscriber.log 2>&1 &
+          echo "Subscriber started"
+          sleep 2
+          
+          /tmp/api -config /tmp/config.api.yaml > /tmp/api.log 2>&1 &
+          echo "API started"
+          
+          sleep 15
+          
+          # Показываем логи
           echo "=== API Logs ==="
-          docker compose logs api
-          
+          cat /tmp/api.log
           echo "=== Collector Logs ==="
-          docker compose logs collector
-          
+          cat /tmp/collector.log
           echo "=== Processor Logs ==="
-          docker compose logs processor
-          
+          cat /tmp/processor.log
           echo "=== Subscriber Logs ==="
-          docker compose logs subscriber
+          cat /tmp/subscriber.log
           
-          echo "=== Testing API from host ==="
-          curl -v http://localhost:8080/health || echo "HEALTH ENDPOINT FAILED"
-          curl -v http://localhost:8080/api/ping || echo "PING ENDPOINT FAILED"
-          
-          echo "=== Testing API from inside container ==="
-          docker exec task3-api-1 wget -O- http://localhost:8080/health 2>&1 || echo "Cannot connect from inside"
+          echo "=== Testing API ==="
+          curl -v http://localhost:8080/health
+          curl -v http://localhost:8080/api/ping
 
       - name: Run tests
         run: |
           cd task3/tests
           go test -v ./
 
-      - name: Stop containers
-        if: always()
+      - name: Show logs on failure
+        if: failure()
         run: |
-          cd task3
-          docker compose down
+          echo "=== API Logs ==="
+          cat /tmp/api.log 2>/dev/null || echo "No API logs"
+          echo "=== Collector Logs ==="
+          cat /tmp/collector.log 2>/dev/null || echo "No collector logs"
+          echo "=== Processor Logs ==="
+          cat /tmp/processor.log 2>/dev/null || echo "No processor logs"
+          echo "=== Subscriber Logs ==="
+          cat /tmp/subscriber.log 2>/dev/null || echo "No subscriber logs"
