@@ -9,9 +9,11 @@ services:
       - ./repo-stat/config.api.yaml:/app/config.yaml:ro
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
-      interval: 5s
+      interval: 2s
       timeout: 5s
-      retries: 10
+      retries: 30
+    networks:
+      - task3-network
 
   collector:
     build:
@@ -19,8 +21,8 @@ services:
       dockerfile: Dockerfile.collector
     ports:
       - "50051:50051"
-    volumes:
-      - ./repo-stat/config.yaml:/app/config.yaml:ro
+    networks:
+      - task3-network
 
   processor:
     build:
@@ -28,8 +30,8 @@ services:
       dockerfile: Dockerfile.processor
     ports:
       - "50052:50052"
-    volumes:
-      - ./repo-stat/config.processor.yaml:/app/config.yaml:ro
+    networks:
+      - task3-network
 
   subscriber:
     build:
@@ -37,8 +39,8 @@ services:
       dockerfile: Dockerfile.subscriber
     ports:
       - "50053:50053"
-    volumes:
-      - ./repo-stat/config.subscriber.yaml:/app/config.yaml:ro
+    networks:
+      - task3-network
 
   tests:
     build:
@@ -49,4 +51,10 @@ services:
         condition: service_healthy
     environment:
       - API_URL=http://api:8080
-    command: ["go", "test", "-v", "./..."]
+    networks:
+      - task3-network
+    command: ["go", "test", "-v", "."]
+
+networks:
+  task3-network:
+    driver: bridge
