@@ -1,19 +1,12 @@
 FROM golang:1.25 AS build
-
-RUN apt-get update && apt-get install -y protobuf-compiler git
-
-RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-
 WORKDIR /src
 COPY . .
 RUN go mod download
-RUN CGO_ENABLED=0 GOOS=linux go build -o /collector ./collector/cmd/app
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/collector ./collector/cmd/app
 
 FROM alpine:latest
 RUN apk add --no-cache ca-certificates
 WORKDIR /app
-COPY --from=build /collector /app/collector
-
+COPY --from=build /app/collector /app/collector
 EXPOSE 50051
 CMD ["/app/collector"]
