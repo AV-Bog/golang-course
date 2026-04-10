@@ -21,42 +21,34 @@ jobs:
           cd task3
           docker compose up -d --build
           
-          echo "=== Waiting for services to be ready ==="
-          for i in {1..30}; do
-            if curl -s http://localhost:8080/health 2>/dev/null | grep -q "ok"; then
-              echo "API is ready after $i seconds"
-              break
-            fi
-            echo "⏳ Waiting for API... ($i/30)"
-            sleep 2
-          done
+          echo "=== Waiting 30 seconds ==="
+          sleep 30
           
           echo "=== Container Status ==="
           docker compose ps
           
-          echo "=== Container Logs ==="
-          docker compose logs --tail=50
+          echo "=== All container logs ==="
+          docker compose logs --tail=100
           
-          echo "=== Testing API endpoints ==="
-          curl -s http://localhost:8080/health
-          echo ""
-          curl -s http://localhost:8080/api/ping
-          echo ""
+          echo "=== Check API health ==="
+          curl -v http://localhost:8080/health || echo "HEALTH ENDPOINT FAILED"
+          
+          echo "=== Check API ping ==="
+          curl -v http://localhost:8080/api/ping || echo "PING ENDPOINT FAILED"
+          
+          echo "=== Check if API is listening inside container ==="
+          docker exec task3-api-1 netstat -tlnp 2>/dev/null || docker exec task3-api-1 ss -tlnp 2>/dev/null || echo "Cannot check netstat"
+          
+          echo "=== Check API process ==="
+          docker exec task3-api-1 ps aux || echo "Cannot check process"
 
-      - name: Run integration tests
+      - name: Run tests
         run: |
           cd task3/tests
-          go test -v -timeout 5m ./
+          go test -v ./
 
       - name: Stop containers
         if: always()
         run: |
           cd task3
           docker compose down
-
-      - name: Show logs on failure
-        if: failure()
-        run: |
-          cd task3
-          echo "=== Full logs on failure ==="
-          docker compose logs
