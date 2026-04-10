@@ -11,96 +11,33 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.26.1'
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Install protoc
+      - name: Build and run with Docker Compose
         run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
+          cd task3
+          docker compose up -d --build --wait
+          docker compose ps
 
-      - name: Build services
+      - name: Wait for API to be ready
         run: |
-          cd task3/repo-stat
-          go build -v -o /tmp/api ./api/cmd/app
-          go build -v -o /tmp/collector ./collector/cmd/app
-          go build -v -o /tmp/processor ./processor/cmd/app
-          go build -v -o /tmp/subscriber ./subscriber/cmd/app
-          echo "Build completed"
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/health | grep -q "ok"; then
+              echo "API is ready!"
+              break
+            fi
+            echo "Waiting for API... ($i/30)"
+            sleep 2
+          done
 
-      - name: Copy configs
+      - name: Run integration tests in Docker
         run: |
-          cp task3/repo-stat/config.yaml /tmp/config.yaml
-          cp task3/repo-stat/config.processor.yaml /tmp/config.processor.yaml
-          cp task3/repo-stat/config.subscriber.yaml /tmp/config.subscriber.yaml
-          cp task3/repo-stat/config.api.yaml /tmp/config.api.yaml
-          echo "Configs copied"
+          cd task3
+          docker compose run --rm tests
 
-      - name: Run services with logs
+      - name: Stop containers
+        if: always()
         run: |
-          # Запускаем и сохраняем логи
-          /tmp/collector -config /tmp/config.yaml 2>&1 | tee /tmp/collector.log &
-          COLLECTOR_PID=$!
-          echo "Collector PID: $COLLECTOR_PID"
-          
-          sleep 3
-          
-          /tmp/processor -config /tmp/config.processor.yaml 2>&1 | tee /tmp/processor.log &
-          PROCESSOR_PID=$!
-          echo "Processor PID: $PROCESSOR_PID"
-          
-          sleep 3
-          
-          /tmp/subscriber -config /tmp/config.subscriber.yaml 2>&1 | tee /tmp/subscriber.log &
-          SUBSCRIBER_PID=$!
-          echo "Subscriber PID: $SUBSCRIBER_PID"
-          
-          sleep 3
-          
-          /tmp/api -config /tmp/config.api.yaml 2>&1 | tee /tmp/api.log &
-          API_PID=$!
-          echo "API PID: $API_PID"
-          
-          # Ждём
-          sleep 20
-          
-          # Проверяем процессы
-          echo "=== Running processes ==="
-          ps aux | grep -E "api|collector|processor|subscriber" | grep -v grep
-          
-          # Показываем логи
-          echo "=== API Logs ==="
-          cat /tmp/api.log
-          
-          echo "=== Collector Logs ==="
-          cat /tmp/collector.log
-          
-          echo "=== Processor Logs ==="
-          cat /tmp/processor.log
-          
-          echo "=== Subscriber Logs ==="
-          cat /tmp/subscriber.log
-          
-          # Проверяем API
-          echo "=== Testing API ==="
-          curl -v http://localhost:8080/health || echo "HEALTH FAILED"
-          curl -v http://localhost:8080/api/ping || echo "PING FAILED"
-
-      - name: Run tests
-        run: |
-          cd task3/tests
-          go test -v ./
-
-      - name: Show logs on failure
-        if: failure()
-        run: |
-          echo "=== API Logs ==="
-          cat /tmp/api.log 2>/dev/null || echo "No API logs"
-          echo "=== Collector Logs ==="
-          cat /tmp/collector.log 2>/dev/null || echo "No collector logs"
-          echo "=== Processor Logs ==="
-          cat /tmp/processor.log 2>/dev/null || echo "No processor logs"
-          echo "=== Subscriber Logs ==="
-          cat /tmp/subscriber.log 2>/dev/null || echo "No subscriber logs"
+          cd task3
+          docker compose down

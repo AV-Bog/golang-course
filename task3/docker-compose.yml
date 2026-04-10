@@ -4,9 +4,14 @@ services:
       context: ./repo-stat
       dockerfile: Dockerfile.api
     ports:
-      - "28080:8080"
+      - "8080:8080"
     volumes:
       - ./repo-stat/config.api.yaml:/app/config.yaml:ro
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   collector:
     build:
@@ -34,3 +39,14 @@ services:
       - "50053:50053"
     volumes:
       - ./repo-stat/config.subscriber.yaml:/app/config.yaml:ro
+
+  tests:
+    build:
+      context: ./tests
+      dockerfile: Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      - API_URL=http://api:8080
+    command: ["go", "test", "-v", "./..."]
