@@ -3,4 +3,4 @@ grpc:
 logger:
   log_level: "INFO"
 services:
-  collector: "localhost:50051"
+  collector: "collector:50051"
