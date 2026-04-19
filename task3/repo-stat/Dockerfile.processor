@@ -15,5 +15,5 @@ RUN apk add --no-cache ca-certificates
 WORKDIR /app
 COPY --from=build /processor_bin /app/processor
 COPY ./processor/config/config.yaml /app/config.yaml
-EXPOSE 50052
+EXPOSE 50051
 CMD ["/app/processor"]
