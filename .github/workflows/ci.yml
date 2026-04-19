@@ -60,8 +60,16 @@ jobs:
         run: |
           cd repo-stat
           docker compose up -d --build
-          timeout 120s bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:28080/health)" != "200" ]]; do sleep 2; done'
-          curl http://localhost:28080/api/ping
+          echo "Waiting for services to be ready..."
+          for i in {1..30}; do
+            if curl -s http://localhost:28080/health | grep -q "ok"; then
+              echo "API is ready!"
+              break
+            fi
+            echo "Waiting... (attempt $i/30)"
+            sleep 2
+          done
+          curl -v http://localhost:28080/api/ping
 
       - name: Run integration tests
         run: |
