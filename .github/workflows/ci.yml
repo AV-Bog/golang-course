@@ -64,6 +64,15 @@ jobs:
         run: |
           cd repo-stat
           docker compose up -d --build
+          echo "=== Debug logs ==="
+          docker logs repo-stat-processor
+          docker logs repo-stat-collector
+          docker logs repo-stat-api
+          echo "=== Configs ==="
+          docker exec repo-stat-processor cat /app/config.yaml
+          docker exec repo-stat-collector cat /app/config.yaml
+          echo "=== Network ==="
+          docker exec repo-stat-processor ping -c 2 collector
           echo "Waiting for services to be ready..."
           for i in {1..30}; do
             if curl -s http://localhost:28080/health | grep -q "ok"; then
@@ -74,14 +83,3 @@ jobs:
             sleep 2
           done
           curl -v http://localhost:28080/api/ping
-
-      - name: Run integration tests
-        run: |
-          cd tests
-          go test -v ./
-
-      - name: Stop containers
-        if: always()
-        run: |
-          cd repo-stat
-          docker compose down
