@@ -27,7 +27,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProcessorServiceClient interface {
-	GetRepository(ctx context.Context, in *GetRepositoryRequest, opts ...grpc.CallOption) (*GetRepositoryResponse, error)
+	GetRepository(ctx context.Context, in *GetRepositoryRequest, opts ...grpc.CallOption) (*Repository, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 }
 
@@ -39,9 +39,9 @@ func NewProcessorServiceClient(cc grpc.ClientConnInterface) ProcessorServiceClie
 	return &processorServiceClient{cc}
 }
 
-func (c *processorServiceClient) GetRepository(ctx context.Context, in *GetRepositoryRequest, opts ...grpc.CallOption) (*GetRepositoryResponse, error) {
+func (c *processorServiceClient) GetRepository(ctx context.Context, in *GetRepositoryRequest, opts ...grpc.CallOption) (*Repository, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetRepositoryResponse)
+	out := new(Repository)
 	err := c.cc.Invoke(ctx, ProcessorService_GetRepository_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (c *processorServiceClient) Ping(ctx context.Context, in *PingRequest, opts
 // All implementations must embed UnimplementedProcessorServiceServer
 // for forward compatibility.
 type ProcessorServiceServer interface {
-	GetRepository(context.Context, *GetRepositoryRequest) (*GetRepositoryResponse, error)
+	GetRepository(context.Context, *GetRepositoryRequest) (*Repository, error)
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	mustEmbedUnimplementedProcessorServiceServer()
 }
@@ -75,7 +75,7 @@ type ProcessorServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedProcessorServiceServer struct{}
 
-func (UnimplementedProcessorServiceServer) GetRepository(context.Context, *GetRepositoryRequest) (*GetRepositoryResponse, error) {
+func (UnimplementedProcessorServiceServer) GetRepository(context.Context, *GetRepositoryRequest) (*Repository, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRepository not implemented")
 }
 func (UnimplementedProcessorServiceServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
