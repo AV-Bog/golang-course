@@ -58,10 +58,10 @@ jobs:
 
       - name: Start services with Docker
         run: |
+          cd repo-stat
           docker compose up -d --build
-          # Ждём healthcheck вместо sleep
-          timeout 60s bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:8080/health)" != "200" ]]; do sleep 2; done'
-          curl http://localhost:8080/api/ping
+          timeout 60s bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:28080/health)" != "200" ]]; do sleep 2; done'
+          curl http://localhost:28080/api/ping
 
       - name: Run integration tests
         run: |
@@ -71,4 +71,5 @@ jobs:
       - name: Stop containers
         if: always()
         run: |
+          cd repo-stat
           docker compose down
