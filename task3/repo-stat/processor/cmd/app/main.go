@@ -13,7 +13,6 @@ import (
 	"repo-stat/processor/config"
 	"repo-stat/processor/internal/adapter/collector"
 	"repo-stat/processor/internal/controller/grpc"
-	"repo-stat/processor/internal/usecase"
 	processorpb "repo-stat/proto/proto/processor"
 )
 
@@ -35,8 +34,7 @@ func run(ctx context.Context) error {
 		_ = collectorClient.Close()
 	}(collectorClient)
 
-	forwardUC := usecase.NewForwardRepository(collectorClient)
-	handler := grpc.NewHandler(log, forwardUC)
+	handler := grpc.NewHandler(log, collectorClient)
 
 	srv, err := grpcserver.New(cfg.GRPC.Address)
 	if err != nil {
