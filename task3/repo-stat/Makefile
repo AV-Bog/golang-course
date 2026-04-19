@@ -9,7 +9,7 @@ GOLANGCI_LINT := $(GOBIN)/golangci-lint
 PROTOC_GEN_GO := $(GOBIN)/protoc-gen-go
 PROTOC_GEN_GO_GRPC := $(GOBIN)/protoc-gen-go-grpc
 
-PROTOC_GEN_GO_VERSION := v1.32.0
+PROTOC_GEN_GO_VERSION := v1.36.11
 PROTOC_GEN_GO_GRPC_VERSION := v1.6.1
 GOLANGCI_LINT_VERSION := v2.11.2
 
@@ -27,11 +27,15 @@ protobuf:
 	protoc \
 		--go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		--plugin=protoc-gen-go=$(GOBIN)/protoc-gen-go \
+		--plugin=protoc-gen-go-grpc=$(GOBIN)/protoc-gen-go-grpc \
 		proto/proto/collector/collector.proto
 	export PATH="$(GOBIN):$$PATH" && \
 	protoc \
 		--go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		--plugin=protoc-gen-go=$(GOBIN)/protoc-gen-go \
+		--plugin=protoc-gen-go-grpc=$(GOBIN)/protoc-gen-go-grpc \
 		proto/proto/processor/processor.proto
 
 protolint:
