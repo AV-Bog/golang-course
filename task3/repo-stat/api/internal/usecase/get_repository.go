@@ -6,7 +6,7 @@ import (
 )
 
 type RepositoryClient interface {
-	GetRepository(ctx context.Context, url string) (*processorpb.GetRepositoryResponse, error)
+	GetRepository(ctx context.Context, url string) (*processorpb.Repository, error)
 }
 type GetRepository struct {
 	processorClient RepositoryClient
@@ -18,6 +18,6 @@ func NewGetRepository(processorClient RepositoryClient) *GetRepository {
 	}
 }
 
-func (u *GetRepository) Execute(ctx context.Context, url string) (*processorpb.GetRepositoryResponse, error) {
+func (u *GetRepository) Execute(ctx context.Context, url string) (*processorpb.Repository, error) {
 	return u.processorClient.GetRepository(ctx, url)
 }

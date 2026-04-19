@@ -7,7 +7,7 @@ import (
 )
 
 type CollectorClient interface {
-	GetRepository(ctx context.Context, url string) (*collectorpb.GetRepositoryResponse, error)
+	GetRepository(ctx context.Context, url string) (*collectorpb.Repository, error)
 }
 
 type ForwardRepository struct {
@@ -20,6 +20,6 @@ func NewForwardRepository(collectorClient CollectorClient) *ForwardRepository {
 	}
 }
 
-func (uc *ForwardRepository) Execute(ctx context.Context, url string) (*collectorpb.GetRepositoryResponse, error) {
+func (uc *ForwardRepository) Execute(ctx context.Context, url string) (*collectorpb.Repository, error) {
 	return uc.collectorClient.GetRepository(ctx, url)
 }

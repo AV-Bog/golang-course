@@ -3,49 +3,41 @@ package grpc
 import (
 	"context"
 	"log/slog"
+	"repo-stat/processor/internal/adapter/collector"
 	processorpb "repo-stat/proto/proto/processor"
 
-	"repo-stat/processor/internal/usecase"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type Server struct {
 	processorpb.UnimplementedProcessorServiceServer
-	log               *slog.Logger
-	forwardRepository *usecase.ForwardRepository
+	log    *slog.Logger
+	client *collector.Client
 }
 
-func NewHandler(log *slog.Logger, forwardRepository *usecase.ForwardRepository) *Server {
+func NewHandler(log *slog.Logger, client *collector.Client) *Server {
 	return &Server{
-		log:               log,
-		forwardRepository: forwardRepository,
+		log:    log,
+		client: client,
 	}
 }
 
-func (s *Server) GetRepository(ctx context.Context, req *processorpb.GetRepositoryRequest) (*processorpb.GetRepositoryResponse, error) {
-	resp, err := s.forwardRepository.Execute(ctx, req.Url)
+func (s *Server) GetRepository(ctx context.Context, req *processorpb.GetRepositoryRequest) (*processorpb.Repository, error) {
+	repo, err := s.client.GetRepository(ctx, req.Url)
 	if err != nil {
-		s.log.Error("failed to forward request", "error", err, "url", req.Url)
-		return nil, err
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	if repo == nil {
+		return nil, status.Error(codes.NotFound, "repository not found")
 	}
 
-	var processorRepo *processorpb.Repository
-	if resp.Repository != nil {
-		processorRepo = &processorpb.Repository{
-			FullName:    resp.Repository.FullName,
-			Description: resp.Repository.Description,
-			Stars:       resp.Repository.Stars,
-			Forks:       resp.Repository.Forks,
-			CreatedAt:   resp.Repository.CreatedAt,
-			Language:    resp.Repository.Language,
-		}
-	}
-
-	return &processorpb.GetRepositoryResponse{
-		Repository: processorRepo,
+	return &processorpb.Repository{
+		FullName:    repo.FullName,
+		Description: repo.Description,
+		Stars:       repo.Stars,
+		Forks:       repo.Forks,
+		CreatedAt:   repo.CreatedAt,
+		Language:    repo.Language,
 	}, nil
-}
-
-func (s *Server) Ping(ctx context.Context, req *processorpb.PingRequest) (*processorpb.PingResponse, error) {
-	s.log.Debug("Ping received")
-	return &processorpb.PingResponse{Status: "pong"}, nil
 }

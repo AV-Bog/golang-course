@@ -5,17 +5,11 @@ package collector.v1;
 option go_package = "repo-stat/proto/proto/collector;collectorv1";
 
 service CollectorService {
-  rpc GetRepository(GetRepositoryRequest) returns (GetRepositoryResponse);
+  rpc GetRepository(GetRepositoryRequest) returns (Repository);
 }
 
 message GetRepositoryRequest {
   string url = 1;
-}
-
-message GetRepositoryResponse {
-  Repository repository = 1;
-  int32 error_code = 2;
-  string error_message = 3;
 }
 
 message Repository {

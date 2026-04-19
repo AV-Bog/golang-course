@@ -9,7 +9,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	_ "repo-stat/collector/internal/usecase"
 	collectorpb "repo-stat/proto/proto/collector"
 )
 
@@ -26,21 +25,22 @@ func NewHandler(log *slog.Logger, getRepositoryUC *usecase.GetRepository) *Serve
 	}
 }
 
-func (s *Server) GetRepository(ctx context.Context, req *collectorpb.GetRepositoryRequest) (*collectorpb.GetRepositoryResponse, error) {
+func (s *Server) GetRepository(ctx context.Context, req *collectorpb.GetRepositoryRequest) (*collectorpb.Repository, error) {
 	repo, err := s.getRepositoryUC.Execute(ctx, req.Url)
 	if err != nil {
 		return nil, s.mapError(err)
 	}
+	if repo == nil {
+		return nil, status.Error(codes.Internal, "repository is nil")
+	}
 
-	return &collectorpb.GetRepositoryResponse{
-		Repository: &collectorpb.Repository{
-			FullName:    repo.FullName,
-			Description: repo.Description,
-			Stars:       int32(repo.Stars),
-			Forks:       int64(repo.Forks),
-			CreatedAt:   repo.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			Language:    repo.Language,
-		},
+	return &collectorpb.Repository{
+		FullName:    repo.FullName,
+		Stars:       int32(repo.Stars),
+		Description: repo.Description,
+		Forks:       int64(repo.Forks),
+		CreatedAt:   repo.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		Language:    repo.Language,
 	}, nil
 }
 

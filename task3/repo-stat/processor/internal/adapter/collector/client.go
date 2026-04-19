@@ -29,7 +29,7 @@ func NewClient(address string, log *slog.Logger) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) GetRepository(ctx context.Context, url string) (*collectorpb.GetRepositoryResponse, error) {
+func (c *Client) GetRepository(ctx context.Context, url string) (*collectorpb.Repository, error) {
 	return c.pb.GetRepository(ctx, &collectorpb.GetRepositoryRequest{Url: url})
 }
 
