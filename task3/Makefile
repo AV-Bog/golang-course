@@ -16,11 +16,6 @@ down-volumes: check-container-runtime ## Stop and remove containers and all volu
 run-tests: ## Run tests container
 	$(CONTAINER_RUNTIME) run --rm --network=host tests:latest
 
-test:
-	go test -race -coverprofile=coverage.out -covermode=atomic \
-		$(shell go list ./... | grep -E -v 'repo-stat/(proto|subscriber)')
-	@echo "✓ Tests completed. Coverage data in coverage.out"
-
 lint: ## Run linters
 	$(MAKE) -C repo-stat lint
 

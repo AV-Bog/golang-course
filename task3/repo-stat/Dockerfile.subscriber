@@ -8,5 +8,6 @@ FROM alpine:latest
 RUN apk add --no-cache ca-certificates
 WORKDIR /app
 COPY --from=build /subscriber_bin /app/subscriber
+COPY ./subscriber/config/config.yaml /app/config.yaml
 EXPOSE 50053
 CMD ["/app/subscriber"]

@@ -1,4 +1,10 @@
-grpc:
-  address: "0.0.0.0:50051"
+app_name: "repo-stat-api"
+http:
+  address: ":8080"
+  timeout: "30s"
 logger:
-  log_level: "INFO"
+  log_level: "DEBUG"
+
+services:
+  processor: "processor:50051"
+  subscriber: "subscriber:50053"

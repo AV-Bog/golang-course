@@ -8,5 +8,6 @@ FROM alpine:latest
 RUN apk add --no-cache ca-certificates
 WORKDIR /app
 COPY --from=build /collector_bin /app/collector
-EXPOSE 50051
+COPY ./collector/config/config.yaml /app/config.yaml
+EXPOSE 50052
 CMD ["/app/collector"]

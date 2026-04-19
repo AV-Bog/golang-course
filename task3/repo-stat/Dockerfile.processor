@@ -8,5 +8,6 @@ FROM alpine:latest
 RUN apk add --no-cache ca-certificates
 WORKDIR /app
 COPY --from=build /processor_bin /app/processor
+COPY ./processor/config/config.yaml /app/config.yaml
 EXPOSE 50052
 CMD ["/app/processor"]

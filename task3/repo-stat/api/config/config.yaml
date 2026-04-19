@@ -10,4 +10,4 @@ logger:
 
 services:
   processor: "processor:50051"
-  subscriber: "http://subscriber:8080"
+  subscriber: "subscriber:50053"
