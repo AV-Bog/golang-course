@@ -2,6 +2,7 @@ FROM golang:1.25 AS build
 WORKDIR /src
 COPY . .
 RUN go mod download
+RUN make protobuf
 RUN CGO_ENABLED=0 GOOS=linux go build -o /api_bin ./api/cmd/app
 
 FROM alpine:latest
