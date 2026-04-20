@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
+	"time"
 
 	"repo-stat/collector/config"
+	"repo-stat/collector/internal/adapter/github"
 	"repo-stat/collector/internal/controller/grpc"
 	"repo-stat/collector/internal/usecase"
 	"repo-stat/platform/grpcserver"
@@ -23,10 +26,22 @@ func run(ctx context.Context) error {
 
 	cfg := config.MustLoad(configPath)
 	log := logger.MustMakeLogger(cfg.Logger.LogLevel)
+	log.Info("starting collector server...", "config", configPath)
 
-	log.Info("starting collector server...")
+	grpcTimeout, err := time.ParseDuration(strconv.FormatInt(int64(cfg.GRPC.Timeout), 10))
+	if err != nil {
+		return fmt.Errorf("parse grpc timeout: %w", err)
+	}
+	log.Info("using timeout", "timeout", grpcTimeout)
 
-	getRepoUC := usecase.NewGetRepository(cfg.GitHub.Token)
+	githubConfig := github.Config{
+		AuthToken: cfg.GitHub.Token,
+		Timeout:   grpcTimeout,
+	}
+	githubClient := github.NewClient(githubConfig)
+
+	getRepoUC := usecase.NewGetRepository(githubClient)
+
 	handler := grpc.NewHandler(log, getRepoUC)
 
 	srv, err := grpcserver.New(cfg.GRPC.Address)
@@ -50,6 +65,6 @@ func main() {
 
 	if err := run(ctx); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		return
+		os.Exit(1)
 	}
 }

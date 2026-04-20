@@ -1,13 +1,13 @@
 package github
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
-	_ "strings"
 	"time"
 
 	"repo-stat/collector/internal/domain"
@@ -48,10 +48,10 @@ func NewClient(config Config) *Client {
 	}
 }
 
-func (c *Client) GetRepository(owner, repo string) (*domain.Repository, error) {
+func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain.Repository, error) {
 	url := fmt.Sprintf("%s/repos/%s/%s", c.config.BaseURL, owner, repo)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -68,7 +68,10 @@ func (c *Client) GetRepository(owner, repo string) (*domain.Repository, error) {
 		return nil, fmt.Errorf("HTTP request failed: %w", err)
 	}
 	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
+		err := Body.Close()
+		if err != nil {
+
+		}
 	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)

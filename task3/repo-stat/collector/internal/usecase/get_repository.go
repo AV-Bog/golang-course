@@ -5,14 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"strings"
-	"time"
-
-	"repo-stat/collector/internal/adapter/github"
 	"repo-stat/collector/internal/domain"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"strings"
 )
 
 var (
@@ -21,29 +15,25 @@ var (
 )
 
 type GetRepository struct {
-	githubClient *github.Client
+	githubClient GitHubClient
 }
 
-func NewGetRepository(githubToken string) *GetRepository {
-	config := github.Config{
-		AuthToken: githubToken,
-		Timeout:   10 * time.Second,
-	}
+func NewGetRepository(githubClient GitHubClient) *GetRepository {
 	return &GetRepository{
-		githubClient: github.NewClient(config),
+		githubClient: githubClient,
 	}
 }
 
 func (uc *GetRepository) Execute(ctx context.Context, repoURL string) (*domain.Repository, error) {
 	owner, name, err := parseGitHubURL(repoURL)
 	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+		return nil, fmt.Errorf("%w: %s", ErrInvalidURL, repoURL)
 	}
 
-	repo, err := uc.githubClient.GetRepository(owner, name)
+	repo, err := uc.githubClient.GetRepository(ctx, owner, name)
 	if err != nil {
-		if errors.Is(err, github.ErrRepoNotFound) {
-			return nil, status.Error(codes.NotFound, err.Error())
+		if errors.Is(err, ErrRepoNotFound) {
+			return nil, ErrRepoNotFound
 		}
 		return nil, err
 	}

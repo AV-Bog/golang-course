@@ -26,8 +26,10 @@ func NewHandler(log *slog.Logger, getRepositoryUC *usecase.GetRepository) *Serve
 }
 
 func (s *Server) GetRepository(ctx context.Context, req *collectorpb.GetRepositoryRequest) (*collectorpb.Repository, error) {
+	s.log.Info("getting repository", "url", req.Url)
 	repo, err := s.getRepositoryUC.Execute(ctx, req.Url)
 	if err != nil {
+		s.log.Error("failed to get repository", "error", err)
 		return nil, s.mapError(err)
 	}
 	if repo == nil {
