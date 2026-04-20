@@ -6,10 +6,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"strconv"
-	"syscall"
-	"time"
-
 	"repo-stat/collector/config"
 	"repo-stat/collector/internal/adapter/github"
 	"repo-stat/collector/internal/controller/grpc"
@@ -17,6 +13,7 @@ import (
 	"repo-stat/platform/grpcserver"
 	"repo-stat/platform/logger"
 	collectorpb "repo-stat/proto/proto/collector"
+	"syscall"
 )
 
 func run(ctx context.Context) error {
@@ -28,10 +25,7 @@ func run(ctx context.Context) error {
 	log := logger.MustMakeLogger(cfg.Logger.LogLevel)
 	log.Info("starting collector server...", "config", configPath)
 
-	grpcTimeout, err := time.ParseDuration(strconv.FormatInt(int64(cfg.GRPC.Timeout), 10))
-	if err != nil {
-		return fmt.Errorf("parse grpc timeout: %w", err)
-	}
+	grpcTimeout := cfg.GRPC.Timeout
 	log.Info("using timeout", "timeout", grpcTimeout)
 
 	githubConfig := github.Config{
