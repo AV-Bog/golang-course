@@ -3,23 +3,24 @@ package usecase
 import (
 	"context"
 
-	collectorpb "repo-stat/proto/proto/collector"
+	"repo-stat/processor/internal/domain"
 )
 
 type CollectorClient interface {
-	GetRepository(ctx context.Context, url string) (*collectorpb.Repository, error)
+	GetRepository(ctx context.Context, url string) (*domain.Repository, error)
 }
 
 type ForwardRepository struct {
 	collectorClient CollectorClient
 }
 
-func NewForwardRepository(collectorClient CollectorClient) *ForwardRepository {
+func NewForwardRepository(client CollectorClient) *ForwardRepository {
 	return &ForwardRepository{
-		collectorClient: collectorClient,
+		collectorClient: client,
 	}
 }
 
-func (uc *ForwardRepository) Execute(ctx context.Context, url string) (*collectorpb.Repository, error) {
+func (uc *ForwardRepository) Execute(ctx context.Context, url string) (*domain.Repository, error) {
+
 	return uc.collectorClient.GetRepository(ctx, url)
 }

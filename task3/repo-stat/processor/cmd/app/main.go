@@ -13,6 +13,7 @@ import (
 	"repo-stat/processor/config"
 	"repo-stat/processor/internal/adapter/collector"
 	"repo-stat/processor/internal/controller/grpc"
+	"repo-stat/processor/internal/usecase"
 	processorpb "repo-stat/proto/proto/processor"
 )
 
@@ -26,15 +27,21 @@ func run(ctx context.Context) error {
 
 	log.Info("starting processor server...")
 
-	collectorClient, err := collector.NewClient(cfg.Services.Collector, log)
+	collectorClient, err := collector.NewClient(collector.Config{
+		Address: cfg.Services.Collector,
+		Timeout: cfg.GRPC.Timeout,
+	})
 	if err != nil {
 		return fmt.Errorf("create collector client: %w", err)
 	}
-	defer func(collectorClient *collector.Client) {
-		_ = collectorClient.Close()
-	}(collectorClient)
+	defer func() {
+		if err := collectorClient.Close(); err != nil {
+			log.Error("failed to close collector client", "error", err)
+		}
+	}()
 
-	handler := grpc.NewHandler(log, collectorClient)
+	forwardUC := usecase.NewForwardRepository(collectorClient)
+	handler := grpc.NewHandler(log, forwardUC)
 
 	srv, err := grpcserver.New(cfg.GRPC.Address)
 	if err != nil {

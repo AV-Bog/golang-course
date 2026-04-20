@@ -6,10 +6,6 @@ import (
 	"repo-stat/platform/logger"
 )
 
-type Services struct {
-	Collector string `yaml:"collector" env:"COLLECTOR_ADDRESS"`
-}
-
 type Config struct {
 	App      App               `yaml:"app"`
 	GRPC     grpcserver.Config `yaml:"grpc"`
@@ -19,6 +15,10 @@ type Config struct {
 
 type App struct {
 	AppName string `yaml:"app_name" env:"APP_NAME" env-default:"repo-stat-processor"`
+}
+
+type Services struct {
+	Collector string `yaml:"collector" env:"COLLECTOR_ADDRESS" env-default:"localhost:50052"`
 }
 
 func MustLoad(path string) Config {
