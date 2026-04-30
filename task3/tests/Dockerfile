@@ -1,8 +1,8 @@
 FROM golang:1.25
 
-COPY . /tests
 WORKDIR /tests
+COPY . .
 
 RUN go mod download
 
-ENTRYPOINT ["go", "test", "-v", "./..."]
+CMD ["go", "test", "-v", "."]

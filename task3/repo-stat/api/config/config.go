@@ -12,6 +12,7 @@ type App struct {
 
 type Services struct {
 	Subscriber string `yaml:"subscriber" env:"SUBSCRIBER_ADDRESS" env-default:"localhost:8081"`
+	Processor  string
 }
 
 type Config struct {

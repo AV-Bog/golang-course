@@ -1,0 +1,58 @@
+services:
+  api:
+    build:
+      context: ./repo-stat
+      dockerfile: Dockerfile.api
+    ports:
+      - "28080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+    networks:
+      - task3-network
+
+  collector:
+    build:
+      context: ./repo-stat
+      dockerfile: Dockerfile.collector
+    ports:
+      - "50051:50051"
+    networks:
+      - task3-network
+
+  processor:
+    build:
+      context: ./repo-stat
+      dockerfile: Dockerfile.processor
+    ports:
+      - "50052:50052"
+    networks:
+      - task3-network
+
+  subscriber:
+    build:
+      context: ./repo-stat
+      dockerfile: Dockerfile.subscriber
+    ports:
+      - "50053:50053"
+    networks:
+      - task3-network
+
+  tests:
+    build:
+      context: ./tests
+      dockerfile: Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      - API_URL=http://api:28080
+    networks:
+      - task3-network
+    command: ["go", "test", "-v", "."]
+
+networks:
+  task3-network:
+    driver: bridge

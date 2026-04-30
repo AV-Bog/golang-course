@@ -1,26 +1,77 @@
 package http
 
 import (
-	"context"
-	"log/slog"
+	"encoding/json"
 	"net/http"
-	"repo-stat/api/config"
-	"repo-stat/api/internal/adapter/subscriber"
+
 	"repo-stat/api/internal/usecase"
 )
 
-func NewHandler(ctx context.Context, log *slog.Logger, cfg config.Config) (http.Handler, error) {
-	subscriberClient, err := subscriber.NewClient(cfg.Services.Subscriber, log)
-	if err != nil {
-		log.Error("cannot init subscriber adapter", "error", err)
-		return nil, err
-	}
+type Handler struct {
+	mux *http.ServeMux
+}
 
-	pingUseCase := usecase.NewPing(subscriberClient)
-
+func NewHandler(pingUC *usecase.Ping, repoUC *usecase.GetRepository) *Handler {
 	mux := http.NewServeMux()
-	AddRoutes(mux, log, pingUseCase)
 
-	var handler http.Handler = mux
-	return handler, nil
+	mux.HandleFunc("GET /health", healthHandler)
+	mux.HandleFunc("GET /api/ping", pingHandler(pingUC))
+	mux.HandleFunc("GET /repositories/{owner}/{repo}", repositoryHandler(repoUC))
+
+	return &Handler{mux: mux}
+}
+
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h.mux.ServeHTTP(w, r)
+}
+
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	if err != nil {
+		return
+	}
+}
+
+func pingHandler(pingUC *usecase.Ping) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		result, statusCode := pingUC.Execute(r.Context())
+		w.WriteHeader(statusCode)
+
+		err := json.NewEncoder(w).Encode(result)
+		if err != nil {
+			return
+		}
+	}
+}
+
+func repositoryHandler(repoUC *usecase.GetRepository) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		owner := r.PathValue("owner")
+		repo := r.PathValue("repo")
+		url := "https://github.com/" + owner + "/" + repo
+
+		repository, err := repoUC.Execute(r.Context(), url)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			err := json.NewEncoder(w).Encode(map[string]string{
+				"error": err.Error(),
+			})
+			if err != nil {
+				return
+			}
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		err = json.NewEncoder(w).Encode(repository)
+		if err != nil {
+			return
+		}
+	}
 }

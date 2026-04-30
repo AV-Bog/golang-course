@@ -8,12 +8,12 @@ RUN go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.1
 COPY . .
 RUN go mod download
 RUN make protobuf
-RUN CGO_ENABLED=0 GOOS=linux go build -o /subscriber_bin ./subscriber/cmd/app
+RUN CGO_ENABLED=0 GOOS=linux go build -o /collector_bin ./collector/cmd/app
 
 FROM alpine:latest
 RUN apk add --no-cache ca-certificates
 WORKDIR /app
-COPY --from=build /subscriber_bin /app/subscriber
-COPY ./subscriber/config/config.yaml /app/config.yaml
-EXPOSE 50053
-CMD ["/app/subscriber"]
+COPY --from=build /collector_bin /app/collector
+COPY ./collector/config/config.yaml /app/config.yaml
+EXPOSE 50052
+CMD ["/app/collector"]

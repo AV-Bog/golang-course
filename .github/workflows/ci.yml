@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-      # // TODO: other folders
         working-directory: task3
     steps:
       - uses: actions/checkout@v5
@@ -27,21 +26,30 @@ jobs:
       - name: Install protoc
         run: |
           sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
+          sudo apt-get install -y wget unzip
+          wget https://github.com/protocolbuffers/protobuf/releases/download/v34.1/protoc-34.1-linux-x86_64.zip
+          sudo unzip -o protoc-34.1-linux-x86_64.zip -d /usr/local
+          sudo chmod +x /usr/local/bin/protoc
+          protoc --version
 
       - name: Install tools
         run: make -C repo-stat tools
 
+      - name: Generate protobuf
+        run: make -C repo-stat protobuf
+
       - name: Check protobuf generation
         run: |
-          make proto
           git diff --exit-code
 
       - name: Lint
-        run: make lint
+        run: make -C repo-stat lint
 
-      - name: Unit
-        run: make unit
+      - name: Build
+        run: make -C repo-stat build
+
+      - name: Unit tests
+        run: make -C repo-stat test
 
   integration:
     runs-on: ubuntu-latest
@@ -52,7 +60,26 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Integration tests
-        run: make test
-        env:
-          CONTAINER_RUNTIME: docker
+      - name: Start services with Docker
+        run: |
+          cd repo-stat
+          docker compose up -d --build
+          echo "=== Debug logs ==="
+          docker logs repo-stat-processor
+          docker logs repo-stat-collector
+          docker logs repo-stat-api
+          echo "=== Configs ==="
+          docker exec repo-stat-processor cat /app/config.yaml
+          docker exec repo-stat-collector cat /app/config.yaml
+          echo "=== Network ==="
+          docker exec repo-stat-processor ping -c 2 collector
+          echo "Waiting for services to be ready..."
+          for i in {1..30}; do
+            if curl -s http://localhost:28080/health | grep -q "ok"; then
+              echo "API is ready!"
+              break
+            fi
+            echo "Waiting... (attempt $i/30)"
+            sleep 2
+          done
+          curl -v http://localhost:28080/api/ping

@@ -1,0 +1,60 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: repo-stat-api
+    ports:
+      - "28080:8080"
+    depends_on:
+      - processor
+      - subscriber
+    networks:
+      - repo-stat-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  processor:
+    build:
+      context: .
+      dockerfile: Dockerfile.processor
+    container_name: repo-stat-processor
+    ports:
+      - "50051:50051"
+    depends_on:
+      - collector
+    networks:
+      - repo-stat-network
+    restart: unless-stopped
+
+  collector:
+    build:
+      context: .
+      dockerfile: Dockerfile.collector
+    container_name: repo-stat-collector
+    ports:
+      - "50052:50052"
+    networks:
+      - repo-stat-network
+    restart: unless-stopped
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+
+  subscriber:
+    build:
+      context: .
+      dockerfile: Dockerfile.subscriber
+    container_name: repo-stat-subscriber
+    ports:
+      - "50053:50053"
+    networks:
+      - repo-stat-network
+    restart: unless-stopped
+
+networks:
+  repo-stat-network:
+    driver: bridge

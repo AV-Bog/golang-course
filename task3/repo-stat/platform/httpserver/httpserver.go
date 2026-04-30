@@ -29,18 +29,24 @@ func New(cfg Config, handler http.Handler) *Server {
 }
 
 func (s *Server) Run(ctx context.Context) error {
+	errCh := make(chan error, 1)
+
 	go func() {
-		<-ctx.Done()
-
-		ctxShutdown, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		_ = s.srv.Shutdown(ctxShutdown)
+		if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			errCh <- err
+		}
 	}()
 
-	err := s.srv.ListenAndServe()
-	if errors.Is(err, http.ErrServerClosed) {
+	select {
+	case <-ctx.Done():
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if err := s.srv.Shutdown(shutdownCtx); err != nil {
+			return err
+		}
 		return nil
+	case err := <-errCh:
+		return err
 	}
-	return err
 }

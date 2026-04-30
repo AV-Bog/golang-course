@@ -1,10 +1,7 @@
-app:
-  app_name: "repo-stat-api"
-
+app_name: "repo-stat-api"
 http:
   address: ":8080"
   timeout: "30s"
-
 logger:
   log_level: "DEBUG"
 
