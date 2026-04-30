@@ -7,29 +7,12 @@ import (
 	subscirberpb "repo-stat/proto/subscriber"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Client struct {
 	log  *slog.Logger
 	conn *grpc.ClientConn
 	pb   subscirberpb.SubscriberClient
-}
-
-func NewClient(address string, log *slog.Logger) (*Client, error) {
-	conn, err := grpc.NewClient(
-		address,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Client{
-		log:  log,
-		conn: conn,
-		pb:   subscirberpb.NewSubscriberClient(conn),
-	}, nil
 }
 
 func (c *Client) Ping(ctx context.Context) error {

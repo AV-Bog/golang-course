@@ -25,7 +25,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.mux.ServeHTTP(w, r)
 }
 
-func healthHandler(w http.ResponseWriter, _ *http.Request) {
+func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
@@ -39,15 +39,10 @@ func pingHandler(pingUC *usecase.Ping) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 
 		result, statusCode := pingUC.Execute(r.Context())
-
 		w.WriteHeader(statusCode)
 
-		if err := json.NewEncoder(w).Encode(result); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			_, err := w.Write([]byte(`{"status":"error","message":"failed to encode response"}`))
-			if err != nil {
-				return
-			}
+		err := json.NewEncoder(w).Encode(result)
+		if err != nil {
 			return
 		}
 	}
@@ -65,8 +60,7 @@ func repositoryHandler(repoUC *usecase.GetRepository) http.HandlerFunc {
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			err := json.NewEncoder(w).Encode(map[string]string{
-				"status":  "error",
-				"message": err.Error(),
+				"error": err.Error(),
 			})
 			if err != nil {
 				return
