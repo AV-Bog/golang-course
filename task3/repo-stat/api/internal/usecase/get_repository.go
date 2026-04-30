@@ -2,11 +2,11 @@ package usecase
 
 import (
 	"context"
-	processorpb "repo-stat/proto/proto/processor"
+	"repo-stat/api/internal/domain"
 )
 
 type RepositoryClient interface {
-	GetRepository(ctx context.Context, url string) (*processorpb.Repository, error)
+	GetRepository(ctx context.Context, url string) (*domain.Repository, error)
 }
 type GetRepository struct {
 	processorClient RepositoryClient
@@ -18,6 +18,6 @@ func NewGetRepository(processorClient RepositoryClient) *GetRepository {
 	}
 }
 
-func (u *GetRepository) Execute(ctx context.Context, url string) (*processorpb.Repository, error) {
+func (u *GetRepository) Execute(ctx context.Context, url string) (*domain.Repository, error) {
 	return u.processorClient.GetRepository(ctx, url)
 }

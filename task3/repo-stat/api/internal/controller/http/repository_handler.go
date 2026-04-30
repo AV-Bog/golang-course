@@ -2,48 +2,48 @@ package http
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"strings"
 
 	"repo-stat/api/internal/usecase"
 )
 
-func NewRepositoryHandler(log *slog.Logger, getRepo *usecase.GetRepository) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		url := r.URL.Query().Get("url")
-		if url == "" {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			_ = json.NewEncoder(w).Encode(map[string]string{"error": "url parameter is required"})
-			return
-		}
+type RepositoryHandler struct {
+	getRepoUC *usecase.GetRepository
+}
 
-		resp, err := getRepo.Execute(r.Context(), url)
-		if err != nil {
-			log.Error("failed to get repository", "error", err)
-			w.Header().Set("Content-Type", "application/json")
+func NewRepositoryHandler(getRepoUC *usecase.GetRepository) *RepositoryHandler {
+	return &RepositoryHandler{
+		getRepoUC: getRepoUC,
+	}
+}
 
-			errMsg := err.Error()
-			statusCode := http.StatusInternalServerError
+func (h *RepositoryHandler) GetRepository(w http.ResponseWriter, r *http.Request) {
+	path := strings.TrimPrefix(r.URL.Path, "/repositories/")
+	parts := strings.Split(path, "/")
+	if len(parts) < 2 {
+		http.Error(w, "invalid repository path", http.StatusBadRequest)
+		return
+	}
 
-			if strings.Contains(errMsg, "not a GitHub URL") ||
-				strings.Contains(errMsg, "InvalidArgument") ||
-				strings.Contains(errMsg, "invalid repository URL") ||
-				strings.Contains(errMsg, "invalid format") {
-				statusCode = http.StatusBadRequest
-			}
+	url := "https://github.com/" + parts[0] + "/" + parts[1]
 
-			w.WriteHeader(statusCode)
-			_ = json.NewEncoder(w).Encode(map[string]string{"error": errMsg})
-			return
-		}
+	repo, err := h.getRepoUC.Execute(r.Context(), url)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-
-		if err := json.NewEncoder(w).Encode(resp); err != nil {
-			log.Error("failed to encode response", "error", err)
-		}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(map[string]interface{}{
+		"full_name":   repo.FullName,
+		"description": repo.Description,
+		"stars":       repo.Stars,
+		"forks":       repo.Forks,
+		"created_at":  repo.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		"language":    repo.Language,
+	})
+	if err != nil {
+		return
 	}
 }
