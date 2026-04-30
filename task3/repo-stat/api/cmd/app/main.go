@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"repo-stat/api/config"
 	"repo-stat/api/internal/adapter/processor"
@@ -13,7 +14,6 @@ import (
 	"repo-stat/api/internal/usecase"
 	"repo-stat/platform/httpserver"
 	"repo-stat/platform/logger"
-	"syscall"
 )
 
 func run(ctx context.Context) error {
@@ -40,11 +40,11 @@ func run(ctx context.Context) error {
 	}()
 
 	// usecase
-	pingUC := usecase.NewPing(processorClient, nil) // если subscriber пока не нужен
+	pingUC := usecase.NewPing(processorClient, nil)
 	getRepoUC := usecase.NewGetRepository(processorClient)
 
-	// HTTP хендлер с usecase
-	handler := http.NewHandler(pingUC, getRepoUC) // ← NewHandler (без 's')
+	// HTTP хендлер
+	handler := http.NewHandler(pingUC, getRepoUC)
 
 	// HTTP сервер
 	srv := httpserver.New(cfg.HTTP, handler)
@@ -59,10 +59,8 @@ func main() {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	var exitCode int
 	if err := run(ctx); err != nil {
 		fmt.Fprintln(os.Stderr, err)
-		exitCode = 1
+		return
 	}
-	os.Exit(exitCode)
 }

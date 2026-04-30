@@ -80,7 +80,7 @@ func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain
 		return c.handleErrorResponse(resp.StatusCode, body, owner, repo)
 	}
 
-	var githubRepo GitHubResponse
+	var githubRepo Response
 	if err := json.Unmarshal(body, &githubRepo); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
@@ -107,7 +107,7 @@ func (c *Client) handleErrorResponse(statusCode int, body []byte, owner, repo st
 	}
 }
 
-func (c *Client) toDomain(githubRepo GitHubResponse) *domain.Repository {
+func (c *Client) toDomain(githubRepo Response) *domain.Repository {
 	createdAt, err := time.Parse(time.RFC3339, githubRepo.CreatedAt)
 	if err != nil {
 		createdAt = time.Time{}
@@ -123,7 +123,7 @@ func (c *Client) toDomain(githubRepo GitHubResponse) *domain.Repository {
 	}
 }
 
-type GitHubResponse struct {
+type Response struct {
 	FullName        string `json:"full_name"`
 	Description     string `json:"description"`
 	StargazersCount int    `json:"stargazers_count"`
